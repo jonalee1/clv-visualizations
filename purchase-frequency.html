@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Purchase Frequency Models Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #e9ecef;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    .tab.active {
+      background-color: #4361ee;
+      color: white;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .control-group {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .control-group p {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .stats {
+      background-color: #e6f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .chart-container {
+      height: 400px;
+      margin-bottom: 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 15px;
+    }
+    .info-card {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .control-value {
+      font-weight: bold;
+    }
+    .checkbox-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .checkbox-control label {
+      display: inline;
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Purchase Frequency Models: Poisson vs. Negative Binomial Distribution</h2>
+    
+    <div class="tabs">
+      <button class="tab active" data-view="theoretical">Theoretical Models</button>
+      <button class="tab" data-view="simulation">Customer Simulation</button>
+      <button class="tab" data-view="explanation">Visual Explanation</button>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label for="poissonLambda">Poisson Lambda (λ) = <span id="poissonLambdaValue" class="control-value">3.0</span></label>
+        <p>Mean purchase frequency</p>
+        <input type="range" id="poissonLambda" min="0.5" max="10" step="0.5" value="3.0">
+      </div>
+      
+      <div class="control-group">
+        <label for="nbdR">NBD r = <span id="nbdRValue" class="control-value">1.0</span></label>
+        <p>Heterogeneity parameter</p>
+        <input type="range" id="nbdR" min="0.2" max="5" step="0.1" value="1.0">
+      </div>
+      
+      <div class="control-group">
+        <label for="nbdAlpha">NBD α = <span id="nbdAlphaValue" class="control-value">3.0</span></label>
+        <p>α/β is the mean purchase rate</p>
+        <input type="range" id="nbdAlpha" min="0.5" max="10" step="0.5" value="3.0">
+      </div>
+      
+      <div class="control-group">
+        <label for="nbdBeta">NBD β = <span id="nbdBetaValue" class="control-value">1.0</span></label>
+        <input type="range" id="nbdBeta" min="0.1" max="5" step="0.1" value="1.0">
+      </div>
+      
+      <div class="control-group" id="simulatedCustomersControl" style="display: none;">
+        <label for="simulatedCustomers">Simulated Customers = <span id="simulatedCustomersValue" class="control-value">1000</span></label>
+        <p>Number of customers to simulate</p>
+        <input type="range" id="simulatedCustomers" min="100" max="5000" step="100" value="1000">
+      </div>
+      
+      <div class="control-group" id="displayControl">
+        <div class="checkbox-control">
+          <input type="checkbox" id="showPoisson" checked>
+          <label for="showPoisson">Show Poisson</label>
+        </div>
+        <div class="checkbox-control">
+          <input type="checkbox" id="showNBD" checked>
+          <label for="showNBD">Show NBD</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <h3>Distribution Statistics:</h3>
+      <div class="stats-grid">
+        <div>
+          <p><strong>Poisson Mean:</strong> <span id="poissonMean">3.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">E[X] = λ</p>
+        </div>
+        <div>
+          <p><strong>Poisson Variance:</strong> <span id="poissonVariance">3.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">Var[X] = λ</p>
+        </div>
+        <div>
+          <p><strong>NBD Mean:</strong> <span id="nbdMean">3.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">E[X] = α/β</p>
+        </div>
+        <div>
+          <p><strong>NBD Variance:</strong> <span id="nbdVariance">6.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">Var[X] = (α/β²)(1+α/r)</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="mainChart"></canvas>
+    </div>
+    
+    <div class="info-grid">
+      <div class="info-card" id="modelExplanation">
+        <h3 id="explanationTitle">Understanding Distribution Models:</h3>
+        
+        <div id="theoreticalExplanation">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Poisson Distribution:</span> Models customer purchase counts assuming a fixed purchase rate (λ) for ALL customers.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>P(X = k) = (λ^k * e^(-λ)) / k!</li>
+              <li>Mean = Variance = λ</li>
+              <li>Key assumption: All customers have identical purchasing behavior</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Negative Binomial Distribution:</span> Models heterogeneous purchase behavior across customers.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Each customer has a different purchase rate drawn from a Gamma(α,β) distribution</li>
+              <li>Mean = α/β, Variance = (α/β²)(1+α/r)</li>
+              <li>Allows for "overdispersion" (variance > mean)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div id="simulationExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Customer Simulation:</span> Shows results of simulating 1000 customer purchase behaviors.</p>
+            <p><span class="font-semibold">Poisson Simulation:</span> All customers have the same λ = 3.0 purchase rate.</p>
+            <p><span class="font-semibold">NBD Simulation:</span> Each customer has a unique purchase rate drawn from a Gamma distribution.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Note how NBD typically has more customers with 0 purchases AND more with many purchases</li>
+              <li>The heterogeneity creates a longer "tail" in the distribution</li>
+              <li>This pattern better matches real customer behavior in most businesses</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div id="explanationExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Key Difference:</span> How purchase rates are distributed across customers.</p>
+            <p><span class="font-semibold">Poisson Model:</span> All customers have exactly the same purchase rate (λ).</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>This creates a "spike" at λ in the purchase rate distribution</li>
+              <li>Unrealistic assumption for most real customer populations</li>
+              <li>Limits the ability to model different segments within customers</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">NBD Model:</span> Purchase rates follow a Gamma distribution across customers.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Some customers naturally purchase more frequently than others</li>
+              <li>The r parameter controls the shape/heterogeneity of this distribution</li>
+              <li>This creates both occasional purchasers and frequent purchasers</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-card" id="businessImplications">
+        <h3>Business Implications:</h3>
+        
+        <div id="theoreticalImplications">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Model Selection:</span> Which model better represents your customer base?</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li><span class="font-semibold">Use Poisson if:</span> Customers are very similar in behavior (e.g., subscription with fixed billing cycles)</li>
+              <li><span class="font-semibold">Use NBD if:</span> Customers vary significantly in purchase frequency (e.g., retail, e-commerce)</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Testing for Overdispersion:</span> If Variance > Mean in your purchase data, NBD is likely more appropriate.</p>
+            <p class="mt-1"><span class="font-semibold">CLV Impact:</span> Using the wrong model can significantly under or overestimate customer lifetime value.</p>
+          </div>
+        </div>
+        
+        <div id="simulationImplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Customer Segmentation:</span> The NBD reveals natural customer segments in purchase behavior.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>"Occasional shoppers" - Lower purchase rates than average</li>
+              <li>"Regular customers" - Around mean purchase rate</li>
+              <li>"Heavy users" - Much higher purchase rates than average</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Marketing Strategy:</span> Different approaches based on purchase frequency:</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Occasional shoppers: Reactivation campaigns, incentives to visit</li>
+              <li>Regular customers: Loyalty programs, slight increase in visit frequency</li>
+              <li>Heavy users: Increase basket size, premium offerings, exclusives</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div id="explanationImplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">BG/NBD Model Application:</span> The NBD is a key component of the BG/NBD model for CLV prediction.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Captures both customer heterogeneity and purchase timing</li>
+              <li>Better predicts future purchase behavior in non-contractual settings</li>
+              <li>Properly accounts for "heavy users" who drive significant revenue</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">In the BG/NBD model:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Transaction rates follow a Gamma distribution (NBD component)</li>
+              <li>Dropout probability follows a Beta distribution (BG component)</li>
+              <li>Together they model "alive or dead" status and purchase frequency</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Factorial function for Poisson calculations
+    function factorial(n) {
+      if (n === 0 || n === 1) return 1;
+      let result = 1;
+      for (let i = 2; i <= n; i++) {
+        result *= i;
+      }
+      return result;
+    }
+
+    // Poisson PMF: P(X = k) = (λ^k * e^(-λ)) / k!
+    function poissonPMF(lambda, k) {
+      const numerator = Math.pow(lambda, k) * Math.exp(-lambda);
+      const denominator = factorial(k);
+      return numerator / denominator;
+    }
+
+    // Generate Poisson distribution data
+    function generatePoissonData(lambda, maxK) {
+      const data = [];
+      const labels = [];
+      
+      for (let k = 0; k <= maxK; k++) {
+        const probability = poissonPMF(lambda, k);
+        data.push(probability);
+        labels.push(k);
+      }
+      
+      return { data, labels };
+    }
+
+    // NBD PMF using a simpler approximation
+    function nbdPMF(r, alpha, beta, k) {
+      // Calculate combination (r+k-1, k)
+      const combination = (n, k) => {
+        let result = 1;
+        for (let i = 1; i <= k; i++) {
+          result *= (n - (k - i));
+          result /= i;
+        }
+        return result;
+      };
+      
+      // Use simpler formula
+      const p = beta / (alpha + beta);
+      const q = 1 - p;
+      
+      try {
+        const c = combination(r + k - 1, k);
+        return c * Math.pow(p, r) * Math.pow(q, k);
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    // Generate NBD distribution data
+    function generateNBDData(r, alpha, beta, maxK) {
+      const data = [];
+      const labels = [];
+      
+      for (let k = 0; k <= maxK; k++) {
+        try {
+          const probability = nbdPMF(r, alpha, beta, k);
+          if (!isNaN(probability) && isFinite(probability)) {
+            data.push(probability);
+          } else {
+            data.push(0);
+          }
+        } catch (e) {
+          data.push(0);
+        }
+        labels.push(k);
+      }
+      
+      return { data, labels };
+    }
+
+    // Generate customer simulation data
+    function simulateCustomers(numCustomers, lambda) {
+      // Generate random Poisson values 
+      const randomPoisson = (lambda) => {
+        const L = Math.exp(-lambda);
+        let k = 0;
+        let p = 1;
+        
+        do {
+          k++;
+          p *= Math.random();
+        } while (p > L);
+        
+        return k - 1;
+      };
+
+      // Count of customers by purchase number
+      const purchaseCounts = Array(20).fill(0);
+      
+      // Generate transactions for each customer
+      for (let i = 0; i < numCustomers; i++) {
+        const numPurchases = randomPoisson(lambda);
+        if (numPurchases < purchaseCounts.length) {
+          purchaseCounts[numPurchases]++;
+        }
+      }
+      
+      return purchaseCounts;
+    }
+
+    // Generate heterogeneous customer simulation data
+    function simulateHeterogeneousCustomers(numCustomers, alpha, beta, r) {
+      // Generate random gamma value 
+      const randomGamma = (alpha, beta) => {
+        // Simple approximation for gamma distribution
+        let sum = 0;
+        for (let i = 0; i < Math.floor(alpha); i++) {
+          sum += -Math.log(Math.random());
+        }
+        return sum / beta;
+      };
+      
+      // Generate random Poisson with gamma rate
+      const randomNBD = (alpha, beta) => {
+        const lambda = randomGamma(alpha, beta);
+        const L = Math.exp(-lambda);
+        let k = 0;
+        let p = 1;
+        
+        do {
+          k++;
+          p *= Math.random();
+        } while (p > L);
+        
+        return k - 1;
+      };
+
+      // Count of customers by purchase number
+      const purchaseCounts = Array(20).fill(0);
+      
+      // Generate transactions for each customer
+      for (let i = 0; i < numCustomers; i++) {
+        const numPurchases = randomNBD(alpha, r);
+        if (numPurchases < purchaseCounts.length) {
+          purchaseCounts[numPurchases]++;
+        }
+      }
+      
+      return purchaseCounts;
+    }
+
+    // Generate Gamma PDF data for visualization
+    function generateGammaPdfData(alpha, beta) {
+      const data = [];
+      const labels = [];
+      
+      for (let i = 0; i <= 100; i++) {
+        const x = i / 10;
+        // Simple gamma PDF approximation
+        let density = 0;
+        
+        if (x > 0) {
+          density = Math.pow(x, alpha - 1) * 
+                   Math.exp(-beta * x) * 
+                   Math.pow(beta, alpha) / 
+                   factorial(Math.floor(alpha));
+        }
+        
+        // Limit the density for visualization purposes
+        density = isNaN(density) || !isFinite(density) ? 0 : 
+                 density > 0.5 ? 0.5 : density;
+        
+        data.push(density);
+        labels.push(x.toFixed(1));
+      }
+      
+      return { data, labels };
+    }
+
+    // State variables
+    let viewMode = 'theoretical';
+    let poissonLambda = 3.0;
+    let nbdR = 1.0;
+    let nbdAlpha = 3.0;
+    let nbdBeta = 1.0;
+    let simulatedCustomers = 1000;
+    let showPoisson = true;
+    let showNBD = true;
+    
+    // Chart variables
+    let mainChart = null;
+    
+    // Initialize chart
+    function initChart() {
+      const ctx = document.getElementById('mainChart').getContext('2d');
+      mainChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Number of Purchases'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Probability'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Update chart based on current parameters and view mode
+    function updateChart() {
+      if (!mainChart) return;
+      
+      // Calculate statistics
+      const poissonMean = poissonLambda;
+      const poissonVariance = poissonLambda;
+      
+      const nbdMean = nbdAlpha / nbdBeta;
+      const nbdVariance = (nbdAlpha / Math.pow(nbdBeta, 2)) * (1 + (nbdAlpha / nbdR));
+      
+      // Update statistics display
+      document.getElementById('poissonMean').textContent = poissonMean.toFixed(2);
+      document.getElementById('poissonVariance').textContent = poissonVariance.toFixed(2);
+      document.getElementById('nbdMean').textContent = nbdMean.toFixed(2);
+      document.getElementById('nbdVariance').textContent = nbdVariance.toFixed(2);
+      
+      // Update chart based on view mode
+      switch(viewMode) {
+        case 'theoretical':
+          const maxK = 12;
+          const poissonData = generatePoissonData(poissonLambda, maxK);
+          const nbdData = generateNBDData(nbdR, nbdAlpha, nbdBeta, maxK);
+          
+          const datasets = [];
+          
+          if (showPoisson) {
+            datasets.push({
+              label: 'Poisson Distribution',
+              data: poissonData.data,
+              backgroundColor: 'rgba(136, 132, 216, 0.7)',
+              borderColor: 'rgba(136, 132, 216, 1)',
+              borderWidth: 1
+            });
+          }
+          
+          if (showNBD) {
+            datasets.push({
+              label: 'Negative Binomial Distribution',
+              data: nbdData.data,
+              backgroundColor: 'rgba(130, 202, 157, 0.7)',
+              borderColor: 'rgba(130, 202, 157, 1)',
+              borderWidth: 1
+            });
+          }
+          
+          mainChart.data.labels = poissonData.labels;
+          mainChart.data.datasets = datasets;
+          mainChart.options.scales.y.title.text = 'Probability';
+          mainChart.config.type = 'bar';
+          mainChart.update();
+          break;
+          
+        case 'simulation':
+          const poissonCounts = simulateCustomers(simulatedCustomers, poissonLambda);
+          const nbdCounts = simulateHeterogeneousCustomers(simulatedCustomers, nbdAlpha, nbdBeta, nbdR);
+          
+          const simDatasets = [];
+          
+          if (showPoisson) {
+            simDatasets.push({
+              label: 'Homogeneous Customers (Poisson)',
+              data: poissonCounts,
+              backgroundColor: 'rgba(136, 132, 216, 0.7)',
+              borderColor: 'rgba(136, 132, 216, 1)',
+              borderWidth: 1
+            });
+          }
+          
+          if (showNBD) {
+            simDatasets.push({
+              label: 'Heterogeneous Customers (NBD)',
+              data: nbdCounts,
+              backgroundColor: 'rgba(130, 202, 157, 0.7)',
+              borderColor: 'rgba(130, 202, 157, 1)',
+              borderWidth: 1
+            });
+          }
+          
+          mainChart.data.labels = Array.from({length: 20}, (_, i) => i);
+          mainChart.data.datasets = simDatasets;
+          mainChart.options.scales.y.title.text = 'Customer Count';
+          mainChart.config.type = 'bar';
+          mainChart.update();
+          break;
+          
+        case 'explanation':
+          // Set up explanation view with two charts
+          const poissonRateData = [{x: poissonLambda, y: 0.4}];
+          const gammaData = generateGammaPdfData(nbdAlpha, nbdBeta);
+          
+          mainChart.config.type = 'line';
+          mainChart.data.labels = gammaData.labels;
+          mainChart.data.datasets = [
+            {
+              label: 'Poisson Customer Rate Distribution',
+              data: Array(gammaData.labels.length).fill(null),
+              pointRadius: 0,
+              borderColor: 'rgba(136, 132, 216, 1)',
+              backgroundColor: 'transparent',
+              tension: 0
+            },
+            {
+              label: 'NBD Customer Rate Distribution',
+              data: gammaData.data,
+              borderColor: 'rgba(130, 202, 157, 1)',
+              backgroundColor: 'rgba(130, 202, 157, 0.3)',
+              fill: true,
+              tension: 0.4
+            }
+          ];
+          
+          // Add a single point for Poisson at lambda
+          const lambdaIndex = Math.floor(poissonLambda * 10);
+          if (lambdaIndex < mainChart.data.datasets[0].data.length) {
+            mainChart.data.datasets[0].data[lambdaIndex] = 0.4;
+            
+            // Create the "spike" effect
+            if (lambdaIndex > 0) {
+              mainChart.data.datasets[0].data[lambdaIndex-1] = 0.05;
+            }
+            if (lambdaIndex < mainChart.data.datasets[0].data.length - 1) {
+              mainChart.data.datasets[0].data[lambdaIndex+1] = 0.05;
+            }
+          }
+          
+          mainChart.options.scales.x.title.text = 'Purchase Rate (λ)';
+          mainChart.options.scales.y.title.text = 'Probability Density';
+          mainChart.update();
+          break;
+      }
+      
+      // Update explanation texts
+      updateExplanationText();
+    }
+    
+    // Update the explanation text based on current view and parameters
+    function updateExplanationText() {
+      // Hide all explanations
+      document.getElementById('theoreticalExplanation').style.display = 'none';
+      document.getElementById('simulationExplanation').style.display = 'none';
+      document.getElementById('explanationExplanation').style.display = 'none';
+      
+      document.getElementById('theoreticalImplications').style.display = 'none';
+      document.getElementById('simulationImplications').style.display = 'none';
+      document.getElementById('explanationImplications').style.display = 'none';
+      
+      // Show the appropriate explanation
+      document.getElementById(`${viewMode}Explanation`).style.display = 'block';
+      document.getElementById(`${viewMode}Implications`).style.display = 'block';
+      
+      // Update the explanation title
+      const titleMap = {
+        'theoretical': 'Understanding Distribution Models:',
+        'simulation': 'Understanding Customer Simulation:',
+        'explanation': 'Understanding Purchase Rate Heterogeneity:'
+      };
+      document.getElementById('explanationTitle').textContent = titleMap[viewMode];
+      
+      // Update the simulation explanation text with current parameters
+      if (viewMode === 'simulation') {
+        document.getElementById('simulationExplanation').innerHTML = `
+          <div class="space-y-2">
+            <p><span class="font-semibold">Customer Simulation:</span> Shows results of simulating ${simulatedCustomers} customer purchase behaviors.</p>
+            <p><span class="font-semibold">Poisson Simulation:</span> All customers have the same λ = ${poissonLambda.toFixed(1)} purchase rate.</p>
+            <p><span class="font-semibold">NBD Simulation:</span> Each customer has a unique purchase rate drawn from a Gamma distribution.</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Note how NBD typically has more customers with 0 purchases AND more with many purchases</li>
+              <li>The heterogeneity creates a longer "tail" in the distribution</li>
+              <li>This pattern better matches real customer behavior in most businesses</li>
+            </ul>
+          </div>
+        `;
+      }
+    }
+    
+    // Set up event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Update active tab
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Update view mode
+          viewMode = tab.dataset.view;
+          
+          // Show/hide simulated customers control
+          document.getElementById('simulatedCustomersControl').style.display = 
+            viewMode === 'simulation' ? 'block' : 'none';
+          
+          // Show/hide display control
+          document.getElementById('displayControl').style.display = 
+            viewMode === 'explanation' ? 'none' : 'block';
+          
+          // Update chart
+          updateChart();
+        });
+      });
+      
+      // Slider controls
+      document.getElementById('poissonLambda').addEventListener('input', (e) => {
+        poissonLambda = parseFloat(e.target.value);
+        document.getElementById('poissonLambdaValue').textContent = poissonLambda.toFixed(1);
+        updateChart();
+      });
+      
+      document.getElementById('nbdR').addEventListener('input', (e) => {
+        nbdR = parseFloat(e.target.value);
+        document.getElementById('nbdRValue').textContent = nbdR.toFixed(1);
+        updateChart();
+      });
+      
+      document.getElementById('nbdAlpha').addEventListener('input', (e) => {
+        nbdAlpha = parseFloat(e.target.value);
+        document.getElementById('nbdAlphaValue').textContent = nbdAlpha.toFixed(1);
+        updateChart();
+      });
+      
+      document.getElementById('nbdBeta').addEventListener('input', (e) => {
+        nbdBeta = parseFloat(e.target.value);
+        document.getElementById('nbdBetaValue').textContent = nbdBeta.toFixed(1);
+        updateChart();
+      });
+      
+      document.getElementById('simulatedCustomers').addEventListener('input', (e) => {
+        simulatedCustomers = parseInt(e.target.value);
+        document.getElementById('simulatedCustomersValue').textContent = simulatedCustomers;
+        updateChart();
+      });
+      
+      // Checkbox controls
+      document.getElementById('showPoisson').addEventListener('change', (e) => {
+        showPoisson = e.target.checked;
+        updateChart();
+      });
+      
+      document.getElementById('showNBD').addEventListener('change', (e) => {
+        showNBD = e.target.checked;
+        updateChart();
+      });
+    }
+    
+    // Initialize the app
+    function init() {
+      initChart();
+      setupEventListeners();
+      updateChart();
+    }
+    
+    // Start the app when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

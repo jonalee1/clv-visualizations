@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Unified Probabilistic CLV Model Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #e9ecef;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    .tab.active {
+      background-color: #4361ee;
+      color: white;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .control-group {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .control-group p {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .stats {
+      background-color: #e6f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .charts-container {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+      margin-bottom: 20px;
+    }
+    .chart-container {
+      flex: 1;
+      position: relative;
+    }
+    .segment-charts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .segment-chart {
+      flex: 1;
+      min-width: 45%;
+      height: 400px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .info-card {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .teaching-section {
+      background-color: #e6f3ff;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    ul, ol {
+      padding-left: 20px;
+    }
+    .font-semibold {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Unified Probabilistic CLV Model: Interactive Visualization</h2>
+    
+    <div class="tabs">
+      <button class="tab active" data-view="overview">Overview & CLV</button>
+      <button class="tab" data-view="retention">Retention (BG)</button>
+      <button class="tab" data-view="frequency">Frequency (NBD)</button>
+      <button class="tab" data-view="monetary">Monetary (GG)</button>
+      <button class="tab" data-view="segments">Segments</button>
+    </div>
+    
+    <div class="controls">
+      <!-- Retention Controls (Beta-Geometric) -->
+      <div class="control-group retention-control">
+        <label for="alpha">Alpha (α) = <span id="alphaValue">1.0</span></label>
+        <p>Controls churn rate</p>
+        <input type="range" id="alpha" min="0.2" max="5" step="0.1" value="1.0">
+      </div>
+      
+      <div class="control-group retention-control">
+        <label for="beta">Beta (β) = <span id="betaValue">3.0</span></label>
+        <p>Controls retention rate</p>
+        <input type="range" id="beta" min="0.5" max="10" step="0.1" value="3.0">
+      </div>
+      
+      <!-- Frequency Controls (NBD) -->
+      <div class="control-group frequency-control" style="display: none;">
+        <label for="rParam">r = <span id="rValue">0.5</span></label>
+        <p>Heterogeneity parameter</p>
+        <input type="range" id="rParam" min="0.1" max="5" step="0.1" value="0.5">
+      </div>
+      
+      <div class="control-group frequency-control" style="display: none;">
+        <label for="lambda">λ = <span id="lambdaValue">4.0</span></label>
+        <p>Purchase rate parameter</p>
+        <input type="range" id="lambda" min="0.5" max="10" step="0.5" value="4.0">
+      </div>
+      
+      <!-- Monetary Controls (Gamma-Gamma) -->
+      <div class="control-group monetary-control" style="display: none;">
+        <label for="pParam">p = <span id="pValue">6.0</span></label>
+        <p>Shape parameter 1</p>
+        <input type="range" id="pParam" min="1.5" max="10" step="0.5" value="6.0">
+      </div>
+      
+      <div class="control-group monetary-control" style="display: none;">
+        <label for="qParam">q = <span id="qValue">3.0</span></label>
+        <p>Shape parameter 2</p>
+        <input type="range" id="qParam" min="0.5" max="10" step="0.5" value="3.0">
+      </div>
+      
+      <div class="control-group monetary-control" style="display: none;">
+        <label for="gamma">γ = <span id="gammaValue">15</span></label>
+        <p>Scale parameter</p>
+        <input type="range" id="gamma" min="5" max="50" step="1" value="15">
+      </div>
+      
+      <!-- Common Controls -->
+      <div class="control-group common-control">
+        <label for="timeHorizon">Time Horizon = <span id="timeHorizonValue">24</span> months</label>
+        <p>Forecast period for CLV</p>
+        <input type="range" id="timeHorizon" min="12" max="60" step="12" value="24">
+      </div>
+      
+      <div class="control-group common-control">
+        <label for="discountRate">Discount Rate = <span id="discountRateValue">10</span>%</label>
+        <p>Annual discount rate</p>
+        <input type="range" id="discountRate" min="0" max="30" step="1" value="10">
+      </div>
+    </div>
+    
+    <div class="stats">
+      <h3>Key Model Outputs:</h3>
+      <div class="stats-grid">
+        <div>
+          <p><strong>Monthly Churn Rate: </strong><span id="churnRateValue">25.0</span>%</p>
+          <p style="font-size: 0.9em; color: #666;">α/(α+β)</p>
+        </div>
+        <div>
+          <p><strong>Purchase Frequency: </strong><span id="avgFrequencyValue">8.00</span>/month</p>
+          <p style="font-size: 0.9em; color: #666;">λ/r</p>
+        </div>
+        <div>
+          <p><strong>Average Order: </strong>$<span id="avgMonetaryValue">30.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">γ·q/(p-1)</p>
+        </div>
+        <div>
+          <p><strong>Customer Lifetime Value: </strong>$<span id="totalCLVValue">720.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">Over <span id="horizonDisplay">24</span> months</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="charts-container">
+      <!-- Overview Chart -->
+      <div class="chart-container" id="overviewChartContainer">
+        <canvas id="overviewChart"></canvas>
+      </div>
+      
+      <!-- Retention Chart -->
+      <div class="chart-container" id="retentionChartContainer" style="display: none;">
+        <canvas id="retentionChart"></canvas>
+      </div>
+      
+      <!-- Frequency Chart -->
+      <div class="chart-container" id="frequencyChartContainer" style="display: none;">
+        <canvas id="frequencyChart"></canvas>
+      </div>
+      
+      <!-- Monetary Chart -->
+      <div class="chart-container" id="monetaryChartContainer" style="display: none;">
+        <canvas id="monetaryChart"></canvas>
+      </div>
+      
+      <!-- Segments Charts -->
+      <div class="segment-charts" id="segmentChartsContainer" style="display: none;">
+        <div class="segment-chart">
+          <canvas id="segmentBarChart"></canvas>
+        </div>
+        <div class="segment-chart">
+          <canvas id="segmentPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Model Components:</h3>
+        
+        <!-- Overview explanation -->
+        <div id="overviewModelExplanation">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Unified CLV Model:</span> Combines three probabilistic models to predict customer lifetime value.</p>
+            <ol class="list-decimal pl-5 space-y-1 mt-1">
+              <li><span class="font-semibold">Beta-Geometric (BG):</span> Models customer retention/dropout</li>
+              <li><span class="font-semibold">Negative Binomial Distribution (NBD):</span> Models purchase frequency</li>
+              <li><span class="font-semibold">Gamma-Gamma (GG):</span> Models monetary value per transaction</li>
+            </ol>
+            <p class="mt-2">The combined model accounts for heterogeneity in all three customer behaviors, allowing for more accurate CLV predictions.</p>
+          </div>
+        </div>
+        
+        <!-- Retention explanation -->
+        <div id="retentionModelExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Beta-Geometric Model:</span> Models time until customer dropout (churn).</p>
+            <p><span class="font-semibold">Key assumptions:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Each customer has their own constant churn probability</li>
+              <li>This probability varies across customers according to a Beta(α,β) distribution</li>
+              <li>Lower α and higher β lead to better retention rates</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Current parameters:</span> α = <span id="alphaDisplay">1.0</span>, β = <span id="betaDisplay">3.0</span> → <span id="churnRateDisplay">25.0</span>% monthly churn</p>
+          </div>
+        </div>
+        
+        <!-- Frequency explanation -->
+        <div id="frequencyModelExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Negative Binomial Distribution:</span> Models purchase frequency heterogeneity.</p>
+            <p><span class="font-semibold">Key assumptions:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Each customer has their own purchase rate</li>
+              <li>These rates vary across customers following a Gamma distribution</li>
+              <li>Parameter r controls heterogeneity (lower r = more heterogeneous)</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Current parameters:</span> r = <span id="rDisplay">0.5</span>, λ = <span id="lambdaDisplay">4.0</span> → <span id="frequencyDisplay">8.0</span> purchases/month</p>
+          </div>
+        </div>
+        
+        <!-- Monetary explanation -->
+        <div id="monetaryModelExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Gamma-Gamma Model:</span> Models monetary value per transaction.</p>
+            <p><span class="font-semibold">Key assumptions:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Each customer has their own average transaction value</li>
+              <li>These averages follow a Gamma distribution across customers</li>
+              <li>Individual transactions vary around this average, also following a Gamma distribution</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Current parameters:</span> p = <span id="pDisplay">6.0</span>, q = <span id="qDisplay">3.0</span>, γ = <span id="gammaDisplay">15.0</span> → $<span id="monetaryDisplay">30.00</span> per transaction</p>
+          </div>
+        </div>
+        
+        <!-- Segments explanation -->
+        <div id="segmentsModelExplanation" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Customer Segmentation:</span> The probabilistic model naturally reveals customer segments.</p>
+            <p><span class="font-semibold">Three Key CLV Drivers:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li><span class="font-semibold">Retention:</span> How long customers remain active</li>
+              <li><span class="font-semibold">Frequency:</span> How often they purchase when active</li>
+              <li><span class="font-semibold">Monetary:</span> How much they spend per transaction</li>
+            </ul>
+            <p class="mt-2">The three segments shown differ in all three dimensions, creating dramatically different lifetime values.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-card">
+        <h3>Business Applications:</h3>
+        
+        <!-- Overview business applications -->
+        <div id="overviewBusinessApplications">
+          <div class="space-y-2">
+            <p><span class="font-semibold">CLV-Driven Decision Making:</span> This comprehensive model enables:</p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li><span class="font-semibold">Acquisition Strategy:</span> Set maximum customer acquisition costs based on predicted CLV</li>
+              <li><span class="font-semibold">Retention Investment:</span> Allocate retention resources based on expected future value</li>
+              <li><span class="font-semibold">Growth Planning:</span> Forecast revenue streams based on customer cohorts</li>
+            </ul>
+            <p class="mt-2">By adjusting model parameters, businesses can simulate the impact of various initiatives on long-term customer value.</p>
+          </div>
+        </div>
+        
+        <!-- Retention business applications -->
+        <div id="retentionBusinessApplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Retention Curve Implications:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>The Beta-Geometric model produces a non-exponential retention curve that better matches real data</li>
+              <li>This predicts higher long-term retention than traditional models</li>
+              <li>Heterogeneity means a core of loyal customers naturally emerges over time</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Value of Retention:</span> A 1% improvement in retention can increase CLV by <span id="retentionImpactDisplay">27.0</span>% over <span id="timeHorizonDisplay2">24</span> months.</p>
+          </div>
+        </div>
+        
+        <!-- Frequency business applications -->
+        <div id="frequencyBusinessApplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Purchase Frequency Insights:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Lower r values indicate greater customer heterogeneity</li>
+              <li>Current parameters show significant heterogeneity in purchase behavior</li>
+              <li>Some customers purchase much more frequently than others</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Strategy:</span> Focus on increasing purchase frequency among high-potential customers rather than trying to activate the lowest tier.</p>
+          </div>
+        </div>
+        
+        <!-- Monetary business applications -->
+        <div id="monetaryBusinessApplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Monetary Value Analysis:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li>Current average transaction value: $<span id="monetaryDisplay2">30.00</span></li>
+              <li>Distribution shows considerable variation across customers</li>
+              <li>Understanding this variation helps with pricing and promotion strategy</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">Application:</span> Target upsell opportunities to customers with high frequency but below-average transaction value.</p>
+          </div>
+        </div>
+        
+        <!-- Segments business applications -->
+        <div id="segmentsBusinessApplications" style="display: none;">
+          <div class="space-y-2">
+            <p><span class="font-semibold">Segment-Based Strategy:</span></p>
+            <ul class="list-disc pl-5 space-y-1 mt-1">
+              <li><span class="font-semibold">Low Value:</span> Basic service level, low-cost acquisition channels</li>
+              <li><span class="font-semibold">Medium Value:</span> Standard loyalty programs, gradual engagement increase</li>
+              <li><span class="font-semibold">High Value:</span> Premium services, high-touch relationship management</li>
+            </ul>
+            <p class="mt-2"><span class="font-semibold">ROI Focus:</span> The high-value segment ($<span id="highValueCLV">2808.00</span>) is worth <span id="clvMultiplier">18.6</span>× more than the low-value segment ($<span id="lowValueCLV">151.20</span>).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="teaching-section">
+      <h3>Teaching CLV Concepts:</h3>
+      
+      <!-- Overview teaching -->
+      <div id="overviewTeaching">
+        <div class="space-y-2">
+          <p><span class="font-semibold">Probabilistic vs. Traditional CLV:</span> Unlike deterministic models that provide point estimates, this unified approach:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Captures heterogeneity across all customer behaviors</li>
+            <li>Models the underlying stochastic processes</li>
+            <li>Provides more accurate long-term predictions</li>
+            <li>Represents uncertainty in customer behavior</li>
+          </ul>
+          <p class="mt-2">The combination of Beta-Geometric, NBD, and Gamma-Gamma models addresses the key limitations of traditional CLV approaches.</p>
+        </div>
+      </div>
+      
+      <!-- Retention teaching -->
+      <div id="retentionTeaching" style="display: none;">
+        <div class="space-y-2">
+          <p><span class="font-semibold">Teaching the Beta-Geometric Model:</span></p>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li>Start with the geometric distribution (time until first "success")</li>
+            <li>Show how this creates exponential retention curves with fixed churn rates</li>
+            <li>Introduce Beta heterogeneity to model different customer segments</li>
+            <li>Demonstrate how this creates non-exponential retention curves</li>
+          </ol>
+          <p class="mt-2">Help students understand why heterogeneity matters: the most loyal customers naturally remain in your base longer, changing the retention curve shape.</p>
+        </div>
+      </div>
+      
+      <!-- Frequency teaching -->
+      <div id="frequencyTeaching" style="display: none;">
+        <div class="space-y-2">
+          <p><span class="font-semibold">Teaching the NBD Model:</span></p>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li>Start with the Poisson distribution (fixed purchase rate)</li>
+            <li>Show why this doesn't match real purchase data (overdispersion)</li>
+            <li>Introduce Gamma heterogeneity in purchase rates</li>
+            <li>Demonstrate how this creates a negative binomial distribution</li>
+          </ol>
+          <p class="mt-2">Emphasize the key insight: not all customers are created equal, and understanding this heterogeneity is crucial for accurate forecasting.</p>
+        </div>
+      </div>
+      
+      <!-- Monetary teaching -->
+      <div id="monetaryTeaching" style="display: none;">
+        <div class="space-y-2">
+          <p><span class="font-semibold">Teaching the Gamma-Gamma Model:</span></p>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li>Start with average transaction values per customer</li>
+            <li>Show how these averages vary across customers (Gamma distribution)</li>
+            <li>Explain how individual transactions vary around each customer's average</li>
+            <li>Introduce the compound Gamma-Gamma model structure</li>
+          </ol>
+          <p class="mt-2">Emphasize that this model allows separate treatment of frequency and monetary components, providing more detailed insights.</p>
+        </div>
+      </div>
+      
+      <!-- Segments teaching -->
+      <div id="segmentsTeaching" style="display: none;">
+        <div class="space-y-2">
+          <p><span class="font-semibold">Teaching Customer Segmentation:</span></p>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li>Show how the probabilistic approach naturally creates segments</li>
+            <li>Demonstrate the multiplicative relationship between the three components</li>
+            <li>Compare CLV across segments to reveal investment priorities</li>
+            <li>Link segment behavior to practical marketing strategies</li>
+          </ol>
+          <p class="mt-2">Help students understand that small improvements in all three components can create dramatic CLV increases: a 20% improvement in each creates a 73% increase in total CLV.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Model parameters
+    let activeTab = 'overview';
+    
+    // Retention parameters (Beta-Geometric)
+    let alpha = 1.0;
+    let beta = 3.0;
+    
+    // Frequency parameters (NBD)
+    let r = 0.5;
+    let lambda = 4.0;
+    
+    // Monetary parameters (Gamma-Gamma)
+    let p = 6.0;
+    let q = 3.0;
+    let gamma = 15;
+    
+    // Time parameters
+    let timeHorizon = 24;
+    let discountRate = 10;
+    
+    // Chart objects
+    let overviewChart = null;
+    let retentionChart = null;
+    let frequencyChart = null;
+    let monetaryChart = null;
+    let segmentBarChart = null;
+    let segmentPieChart = null;
+    
+    // Helper functions
+    
+    // Factorial function for calculations
+    function factorial(n) {
+      if (n === 0 || n === 1) return 1;
+      if (n > 20) return Infinity; // Avoid overflow
+      let result = 1;
+      for (let i = 2; i <= n; i++) {
+        result *= i;
+      }
+      return result;
+    }
+    
+    // Format currency
+    function formatCurrency(value) {
+      return value.toFixed(2);
+    }
+    
+    // Calculate Beta-Geometric survival curve
+    function generateRetentionData() {
+      const data = [];
+      const labels = [];
+      const survivalData = [];
+      const churnProbData = [];
+      
+      for (let t = 0; t <= timeHorizon; t++) {
+        // BG survival formula: S(t) = beta/(beta + t*alpha)
+        const survival = beta / (beta + t * alpha);
+        const churnProb = t === 0 ? 0 : survivalData[t-1] - survival;
+        
+        labels.push(t);
+        survivalData.push(survival);
+        churnProbData.push(churnProb);
+      }
+      
+      return { labels, survivalData, churnProbData };
+    }
+    
+    // Generate NBD purchase frequency data
+    function generateFrequencyData() {
+      // Combination function for NBD calculation
+      const combination = (n, k) => {
+        if (k < 0 || k > n) return 0;
+        if (k === 0 || k === n) return 1;
+        
+        let result = 1;
+        for (let i = 1; i <= k; i++) {
+          result *= (n - (k - i));
+          result /= i;
+        }
+        return result;
+      };
+      
+      // NBD PMF calculation
+      const nbdPmf = (r, lambda, k) => {
+        const p = r / (r + lambda);
+        try {
+          return combination(r + k - 1, k) * Math.pow(p, r) * Math.pow(1-p, k);
+        } catch (e) {
+          return 0;
+        }
+      };
+      
+      // Generate data for 0 to maxK purchases
+      const maxK = 10;
+      const labels = [];
+      const probabilities = [];
+      
+      for (let k = 0; k <= maxK; k++) {
+        labels.push(k);
+        probabilities.push(nbdPmf(r, lambda, k));
+      }
+      
+      return { labels, probabilities };
+    }
+    
+    // Generate Gamma-Gamma monetary value data
+    function generateMonetaryData() {
+      // Simplified Gamma-Gamma distribution approximation
+      
+      // Mean of the gamma-gamma distribution
+      const meanValue = gamma * q / (p - 1);
+      
+      // Generate distribution of average transaction values
+      const labels = [];
+      const densities = [];
+      const minValue = Math.max(1, meanValue * 0.2);
+      const maxValue = meanValue * 2;
+      const step = (maxValue - minValue) / 20;
+      
+      for (let value = minValue; value <= maxValue; value += step) {
+        // Approximate density using a gamma distribution
+        // This is a simplification
+        const shape = p * q;
+        const rate = p;
+        const density = Math.pow(value, shape-1) * Math.exp(-rate*value);
+        
+        labels.push(Math.round(value));
+        densities.push(density / 1000); // Scaled for visualization
+      }
+      
+      return { labels, densities };
+    }
+    
+    // Combine all models to calculate CLV
+    function calculateCombinedCLV() {
+      const labels = [];
+      const transactions = [];
+      const spending = [];
+      const discounted = [];
+      const cumulative = [];
+      
+      // Calculate mean spending per transaction from Gamma-Gamma model
+      const meanSpending = gamma * q / (p - 1);
+      
+      // Calculate mean transaction frequency from NBD
+      const meanFrequency = lambda / r;
+      
+      // Calculate CLV for each period
+      let cumulativeClv = 0;
+      
+      for (let t = 0; t <= timeHorizon; t++) {
+        // Probability customer is active in period t (from Beta-Geometric)
+        const survivalProb = beta / (beta + t * alpha);
+        
+        // Expected number of transactions in period t (conditional on being active)
+        // Simplified: using meanFrequency as approximation
+        const expectedTransactions = survivalProb * meanFrequency;
+        
+        // Expected spending in period t
+        const expectedSpending = expectedTransactions * meanSpending;
+        
+        // Discounted value
+        const discountFactor = 1 / Math.pow(1 + (discountRate/100), t);
+        const discountedValue = expectedSpending * discountFactor;
+        
+        cumulativeClv += discountedValue;
+        
+        labels.push(t);
+        transactions.push(expectedTransactions);
+        spending.push(expectedSpending);
+        discounted.push(discountedValue);
+        cumulative.push(cumulativeClv);
+      }
+      
+      return { labels, transactions, spending, discounted, cumulative };
+    }
+    
+    // Generate customer segment data
+    function generateCustomerSegments() {
+      // Calculate average values
+      const avgRetention = beta / (alpha + beta); // Mean of beta distribution
+      const avgFrequency = lambda / r; // Mean of NBD
+      const avgMonetary = gamma * q / (p - 1); // Mean of Gamma-Gamma
+      
+      // Base CLV
+      const baseClv = calculateCombinedCLV().cumulative[timeHorizon];
+      
+      // Generate segments
+      return [
+        {
+          name: "Low Value",
+          retention: avgRetention * 0.7,
+          frequency: avgFrequency * 0.6,
+          monetary: avgMonetary * 0.5,
+          clv: baseClv * 0.21, // 0.7 * 0.6 * 0.5 = 0.21
+          color: "#FF8042"
+        },
+        {
+          name: "Medium Value",
+          retention: avgRetention * 1.0,
+          frequency: avgFrequency * 1.0,
+          monetary: avgMonetary * 1.0,
+          clv: baseClv, 
+          color: "#FFBB28"
+        },
+        {
+          name: "High Value",
+          retention: Math.min(avgRetention * 1.3, 0.95),
+          frequency: avgFrequency * 1.5,
+          monetary: avgMonetary * 2.0,
+          clv: baseClv * 3.9, // 1.3 * 1.5 * 2.0 = 3.9
+          color: "#00C49F"
+        }
+      ];
+    }
+    
+    // Initialize charts
+    function initCharts() {
+      // Overview Chart
+      const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+      overviewChart = new Chart(overviewCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Time Period (months)'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Monthly Value ($)'
+              },
+              position: 'left'
+            },
+            y1: {
+              title: {
+                display: true,
+                text: 'Cumulative CLV ($)'
+              },
+              position: 'right',
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          }
+        }
+      });
+      
+      // Retention Chart
+      const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+      retentionChart = new Chart(retentionCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Time Period (months)'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Probability'
+              },
+              min: 0,
+              max: 1
+            }
+          }
+        }
+      });
+      
+      // Frequency Chart
+      const frequencyCtx = document.getElementById('frequencyChart').getContext('2d');
+      frequencyChart = new Chart(frequencyCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Number of Purchases'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Probability'
+              }
+            }
+          }
+        }
+      });
+      
+      // Monetary Chart
+      const monetaryCtx = document.getElementById('monetaryChart').getContext('2d');
+      monetaryChart = new Chart(monetaryCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          fill: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Average Transaction Value ($)'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Probability Density'
+              }
+            }
+          }
+        }
+      });
+      
+      // Segment Bar Chart
+      const segmentBarCtx = document.getElementById('segmentBarChart').getContext('2d');
+      segmentBarChart = new Chart(segmentBarCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Customer Segment CLV'
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Customer Segment'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'CLV ($)'
+              }
+            }
+          }
+        }
+      });
+      
+      // Segment Pie Chart
+      const segmentPieCtx = document.getElementById('segmentPieChart').getContext('2d');
+      segmentPieChart = new Chart(segmentPieCtx, {
+        type: 'pie',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'CLV Drivers by Segment'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const segment = context.raw;
+                  return [
+                    `CLV: ${formatCurrency(segment.clv)}`,
+                    `Retention: ${(segment.retention*100).toFixed(1)}%`,
+                    `Frequency: ${segment.frequency.toFixed(2)}/month`,
+                    `Value: ${formatCurrency(segment.monetary)}/order`
+                  ];
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Update statistics and display values
+    function updateStatistics() {
+      // Calculate key metrics
+      const churnRate = (alpha / (alpha + beta)) * 100;
+      const avgFrequency = lambda / r;
+      const avgMonetary = gamma * q / (p - 1);
+      const clvData = calculateCombinedCLV();
+      const totalCLV = clvData.cumulative[clvData.cumulative.length - 1];
+      
+      // Update display values
+      document.getElementById('churnRateValue').textContent = churnRate.toFixed(1);
+      document.getElementById('avgFrequencyValue').textContent = avgFrequency.toFixed(2);
+      document.getElementById('avgMonetaryValue').textContent = formatCurrency(avgMonetary);
+      document.getElementById('totalCLVValue').textContent = formatCurrency(totalCLV);
+      document.getElementById('horizonDisplay').textContent = timeHorizon;
+      
+      // Update model component displays
+      document.getElementById('alphaDisplay').textContent = alpha.toFixed(1);
+      document.getElementById('betaDisplay').textContent = beta.toFixed(1);
+      document.getElementById('churnRateDisplay').textContent = churnRate.toFixed(1);
+      
+      document.getElementById('rDisplay').textContent = r.toFixed(1);
+      document.getElementById('lambdaDisplay').textContent = lambda.toFixed(1);
+      document.getElementById('frequencyDisplay').textContent = avgFrequency.toFixed(1);
+      
+      document.getElementById('pDisplay').textContent = p.toFixed(1);
+      document.getElementById('qDisplay').textContent = q.toFixed(1);
+      document.getElementById('gammaDisplay').textContent = gamma.toFixed(1);
+      document.getElementById('monetaryDisplay').textContent = formatCurrency(avgMonetary);
+      document.getElementById('monetaryDisplay2').textContent = formatCurrency(avgMonetary);
+      
+      // Calculate retention impact
+      const retentionImpact = (Math.pow(1.01, timeHorizon) - 1) * 100;
+      document.getElementById('retentionImpactDisplay').textContent = retentionImpact.toFixed(1);
+      document.getElementById('timeHorizonDisplay2').textContent = timeHorizon;
+      
+      // Update segment information
+      const segments = generateCustomerSegments();
+      document.getElementById('highValueCLV').textContent = formatCurrency(segments[2].clv);
+      document.getElementById('lowValueCLV').textContent = formatCurrency(segments[0].clv);
+      document.getElementById('clvMultiplier').textContent = (segments[2].clv / segments[0].clv).toFixed(1);
+    }
+    
+    // Update charts based on current parameters
+    function updateCharts() {
+      // Update overview chart
+      const clvData = calculateCombinedCLV();
+      overviewChart.data.labels = clvData.labels;
+      overviewChart.data.datasets = [
+        {
+          label: 'Monthly Value',
+          data: clvData.discounted,
+          borderColor: '#82ca9d',
+          backgroundColor: 'transparent',
+          yAxisID: 'y',
+          tension: 0.1
+        },
+        {
+          label: 'Cumulative CLV',
+          data: clvData.cumulative,
+          borderColor: '#8884d8',
+          backgroundColor: 'transparent',
+          yAxisID: 'y1',
+          tension: 0.1
+        }
+      ];
+      overviewChart.update();
+      
+      // Update retention chart
+      const retentionData = generateRetentionData();
+      retentionChart.data.labels = retentionData.labels;
+      retentionChart.data.datasets = [
+        {
+          label: 'Survival Probability',
+          data: retentionData.survivalData,
+          borderColor: '#8884d8',
+          backgroundColor: 'rgba(136, 132, 216, 0.3)',
+          fill: true,
+          tension: 0.1
+        },
+        {
+          label: 'Churn Probability',
+          data: retentionData.churnProbData,
+          borderColor: '#ff7300',
+          backgroundColor: 'transparent',
+          tension: 0.1
+        }
+      ];
+      retentionChart.update();
+      
+      // Update frequency chart
+      const frequencyData = generateFrequencyData();
+      frequencyChart.data.labels = frequencyData.labels;
+      frequencyChart.data.datasets = [
+        {
+          label: 'Purchase Frequency',
+          data: frequencyData.probabilities,
+          backgroundColor: '#82ca9d'
+        }
+      ];
+      frequencyChart.update();
+      
+      // Update monetary chart
+      const monetaryData = generateMonetaryData();
+      monetaryChart.data.labels = monetaryData.labels;
+      monetaryChart.data.datasets = [
+        {
+          label: 'Value Distribution',
+          data: monetaryData.densities,
+          borderColor: '#ff7300',
+          backgroundColor: 'rgba(255, 115, 0, 0.3)',
+          fill: true,
+          tension: 0.4
+        }
+      ];
+      monetaryChart.update();
+      
+      // Update segment charts
+      const segments = generateCustomerSegments();
+      
+      // Bar chart
+      segmentBarChart.data.labels = segments.map(s => s.name);
+      segmentBarChart.data.datasets = [
+        {
+          label: 'Customer Lifetime Value',
+          data: segments.map(s => s.clv),
+          backgroundColor: segments.map(s => s.color)
+        }
+      ];
+      segmentBarChart.update();
+      
+      // Pie chart
+      segmentPieChart.data.labels = segments.map(s => s.name);
+      segmentPieChart.data.datasets = [
+        {
+          label: 'CLV Distribution',
+          data: segments,
+          backgroundColor: segments.map(s => s.color)
+        }
+      ];
+      segmentPieChart.update();
+    }
+    
+    // Show the active tab and hide others
+    function showActiveTab() {
+      // Hide all chart containers
+      document.getElementById('overviewChartContainer').style.display = 'none';
+      document.getElementById('retentionChartContainer').style.display = 'none';
+      document.getElementById('frequencyChartContainer').style.display = 'none';
+      document.getElementById('monetaryChartContainer').style.display = 'none';
+      document.getElementById('segmentChartsContainer').style.display = 'none';
+      
+      // Show active chart container
+      if (activeTab === 'overview') {
+        document.getElementById('overviewChartContainer').style.display = 'block';
+      } else if (activeTab === 'retention') {
+        document.getElementById('retentionChartContainer').style.display = 'block';
+      } else if (activeTab === 'frequency') {
+        document.getElementById('frequencyChartContainer').style.display = 'block';
+      } else if (activeTab === 'monetary') {
+        document.getElementById('monetaryChartContainer').style.display = 'block';
+      } else if (activeTab === 'segments') {
+        document.getElementById('segmentChartsContainer').style.display = 'flex';
+      }
+      
+      // Hide all control groups
+      document.querySelectorAll('.retention-control').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.frequency-control').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.monetary-control').forEach(el => el.style.display = 'none');
+      
+      // Show relevant control groups
+      if (activeTab === 'retention') {
+        document.querySelectorAll('.retention-control').forEach(el => el.style.display = 'block');
+      } else if (activeTab === 'frequency') {
+        document.querySelectorAll('.frequency-control').forEach(el => el.style.display = 'block');
+      } else if (activeTab === 'monetary') {
+        document.querySelectorAll('.monetary-control').forEach(el => el.style.display = 'block');
+      }
+      
+      // Hide all explanation sections
+      document.getElementById('overviewModelExplanation').style.display = 'none';
+      document.getElementById('retentionModelExplanation').style.display = 'none';
+      document.getElementById('frequencyModelExplanation').style.display = 'none';
+      document.getElementById('monetaryModelExplanation').style.display = 'none';
+      document.getElementById('segmentsModelExplanation').style.display = 'none';
+      
+      document.getElementById('overviewBusinessApplications').style.display = 'none';
+      document.getElementById('retentionBusinessApplications').style.display = 'none';
+      document.getElementById('frequencyBusinessApplications').style.display = 'none';
+      document.getElementById('monetaryBusinessApplications').style.display = 'none';
+      document.getElementById('segmentsBusinessApplications').style.display = 'none';
+      
+      document.getElementById('overviewTeaching').style.display = 'none';
+      document.getElementById('retentionTeaching').style.display = 'none';
+      document.getElementById('frequencyTeaching').style.display = 'none';
+      document.getElementById('monetaryTeaching').style.display = 'none';
+      document.getElementById('segmentsTeaching').style.display = 'none';
+      
+      // Show active explanations
+      if (activeTab === 'overview') {
+        document.getElementById('overviewModelExplanation').style.display = 'block';
+        document.getElementById('overviewBusinessApplications').style.display = 'block';
+        document.getElementById('overviewTeaching').style.display = 'block';
+      } else if (activeTab === 'retention') {
+        document.getElementById('retentionModelExplanation').style.display = 'block';
+        document.getElementById('retentionBusinessApplications').style.display = 'block';
+        document.getElementById('retentionTeaching').style.display = 'block';
+      } else if (activeTab === 'frequency') {
+        document.getElementById('frequencyModelExplanation').style.display = 'block';
+        document.getElementById('frequencyBusinessApplications').style.display = 'block';
+        document.getElementById('frequencyTeaching').style.display = 'block';
+      } else if (activeTab === 'monetary') {
+        document.getElementById('monetaryModelExplanation').style.display = 'block';
+        document.getElementById('monetaryBusinessApplications').style.display = 'block';
+        document.getElementById('monetaryTeaching').style.display = 'block';
+      } else if (activeTab === 'segments') {
+        document.getElementById('segmentsModelExplanation').style.display = 'block';
+        document.getElementById('segmentsBusinessApplications').style.display = 'block';
+        document.getElementById('segmentsTeaching').style.display = 'block';
+      }
+    }
+    
+    // Update everything when parameters change
+    function updateAll() {
+      updateStatistics();
+      updateCharts();
+      showActiveTab();
+    }
+    
+    // Initialize UI event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Update active tab state
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Set active tab
+          activeTab = tab.dataset.view;
+          
+          // Update UI
+          showActiveTab();
+        });
+      });
+      
+      // Retention parameters
+      document.getElementById('alpha').addEventListener('input', e => {
+        alpha = parseFloat(e.target.value);
+        document.getElementById('alphaValue').textContent = alpha.toFixed(1);
+        updateAll();
+      });
+      
+      document.getElementById('beta').addEventListener('input', e => {
+        beta = parseFloat(e.target.value);
+        document.getElementById('betaValue').textContent = beta.toFixed(1);
+        updateAll();
+      });
+      
+      // Frequency parameters
+      document.getElementById('rParam').addEventListener('input', e => {
+        r = parseFloat(e.target.value);
+        document.getElementById('rValue').textContent = r.toFixed(1);
+        updateAll();
+      });
+      
+      document.getElementById('lambda').addEventListener('input', e => {
+        lambda = parseFloat(e.target.value);
+        document.getElementById('lambdaValue').textContent = lambda.toFixed(1);
+        updateAll();
+      });
+      
+      // Monetary parameters
+      document.getElementById('pParam').addEventListener('input', e => {
+        p = parseFloat(e.target.value);
+        document.getElementById('pValue').textContent = p.toFixed(1);
+        updateAll();
+      });
+      
+      document.getElementById('qParam').addEventListener('input', e => {
+        q = parseFloat(e.target.value);
+        document.getElementById('qValue').textContent = q.toFixed(1);
+        updateAll();
+      });
+      
+      document.getElementById('gamma').addEventListener('input', e => {
+        gamma = parseFloat(e.target.value);
+        document.getElementById('gammaValue').textContent = gamma.toFixed(0);
+        updateAll();
+      });
+      
+      // Common parameters
+      document.getElementById('timeHorizon').addEventListener('input', e => {
+        timeHorizon = parseInt(e.target.value);
+        document.getElementById('timeHorizonValue').textContent = timeHorizon;
+        updateAll();
+      });
+      
+      document.getElementById('discountRate').addEventListener('input', e => {
+        discountRate = parseInt(e.target.value);
+        document.getElementById('discountRateValue').textContent = discountRate;
+        updateAll();
+      });
+    }
+    
+    // Initialize the application
+    function init() {
+      initCharts();
+      setupEventListeners();
+      updateAll();
+    }
+    
+    // Start the app when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Beta-Geometric Model Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #e9ecef;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    .tab.active {
+      background-color: #4361ee;
+      color: white;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .control-group {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .control-group p {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .stats {
+      background-color: #e6f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .chart-container {
+      height: 400px;
+      margin-bottom: 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 15px;
+    }
+    .info-card {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .control-value {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Beta-Geometric Model: Interactive Visualization</h2>
+    
+    <div class="tabs">
+      <button class="tab active" data-view="beta">Beta Distribution</button>
+      <button class="tab" data-view="geometric">Geometric Distribution</button>
+      <button class="tab" data-view="survival">Survival Curves</button>
+      <button class="tab" data-view="simulation">Customer Simulation</button>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label for="alpha">Alpha (α) = <span id="alphaValue" class="control-value">1.0</span></label>
+        <p>Controls shape of Beta distribution</p>
+        <input type="range" id="alpha" min="0.2" max="5" step="0.1" value="1.0">
+      </div>
+      
+      <div class="control-group">
+        <label for="beta">Beta (β) = <span id="betaValue" class="control-value">4.0</span></label>
+        <p>Controls shape of Beta distribution</p>
+        <input type="range" id="beta" min="0.5" max="10" step="0.1" value="4.0">
+      </div>
+      
+      <div class="control-group" id="churnRateControl" style="display: none;">
+        <label for="churnRate">Churn Rate = <span id="churnRateValue" class="control-value">20</span>%</label>
+        <p>For geometric distribution only</p>
+        <input type="range" id="churnRate" min="1" max="50" step="1" value="20">
+      </div>
+      
+      <div class="control-group" id="periodsControl" style="display: none;">
+        <label for="periods">Time Periods = <span id="periodsValue" class="control-value">24</span></label>
+        <p>Number of time periods to model</p>
+        <input type="range" id="periods" min="12" max="48" step="12" value="24">
+      </div>
+      
+      <div class="control-group" id="simulationControl" style="display: none;">
+        <label for="customers">Simulation Size = <span id="customersValue" class="control-value">1000</span></label>
+        <p>Number of customers to simulate</p>
+        <input type="range" id="customers" min="100" max="5000" step="100" value="1000">
+      </div>
+      
+      <div class="control-group" id="segmentsControl" style="display: none;">
+        <label for="showSegments">Display Mode</label>
+        <p>
+          <input type="checkbox" id="showSegments" checked>
+          <label for="showSegments">Show Customer Segments</label>
+        </p>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <h3>Key Statistics:</h3>
+      <div class="stats-grid">
+        <div>
+          <p><strong>Mean Churn Probability:</strong> <span id="meanChurn">20.0</span>%</p>
+          <p style="font-size: 0.9em; color: #666;">Expected average churn rate</p>
+        </div>
+        <div>
+          <p><strong>Mean Customer Lifetime:</strong> <span id="meanLifetime">5.0</span> periods</p>
+          <p style="font-size: 0.9em; color: #666;">Expected avg. time until churn</p>
+        </div>
+        <div>
+          <p><strong>Beta Distribution Variance:</strong> <span id="betaVariance">0.032</span></p>
+          <p style="font-size: 0.9em; color: #666;">Measures heterogeneity in churn rates</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="mainChart"></canvas>
+    </div>
+    
+    <div class="info-grid">
+      <div class="info-card" id="modelExplanation">
+        <h3>Understanding Beta Distribution:</h3>
+        <div>
+          <p><strong>Beta Distribution:</strong> Models how churn probabilities vary across your customer base.</p>
+          <p><strong>Parameters:</strong> α = 1.0, β = 4.0</p>
+          <p><strong>Interpretation:</strong> Each customer has their own churn probability drawn from this distribution.</p>
+          <ul>
+            <li>Lower α creates more weight near zero (more loyal customers)</li>
+            <li>Lower β creates more weight near one (more quick churners)</li>
+            <li>Equal α and β creates a symmetrical distribution</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="info-card" id="businessImplications">
+        <h3>Business Implications:</h3>
+        <div id="betaImplications">
+          <p><strong>Customer Heterogeneity:</strong> Real customer bases have a mix of loyal customers and quick churners.</p>
+          <p><strong>Segmentation Insight:</strong> The shape of this distribution suggests how your customer base is structured:</p>
+          <ul>
+            <li>Right-skewed (current parameters): Many loyal customers with a few high-churn customers</li>
+            <li>Left-skewed: Many high-churn customers with a few loyal ones</li>
+            <li>U-shaped: Polarized base with both very loyal and very transient customers</li>
+          </ul>
+          <p><strong>Application:</strong> Understanding this heterogeneity helps with targeted retention strategies and more accurate CLV forecasting.</p>
+        </div>
+        
+        <div id="geometricImplications" style="display: none;">
+          <p><strong>Traditional Assumption:</strong> Most simple CLV models assume all customers have identical churn risk.</p>
+          <p><strong>Memoryless Property:</strong> The geometric distribution has a "memoryless" property - a customer's probability of churning doesn't change with tenure.</p>
+          <p><strong>Limitation:</strong> This doesn't match reality, where:</p>
+          <ul>
+            <li>Some customers are inherently more loyal than others</li>
+            <li>Customer tenure often affects churn probability</li>
+            <li>Retention curves aren't purely exponential in real data</li>
+          </ul>
+        </div>
+        
+        <div id="survivalImplications" style="display: none;">
+          <p><strong>Retention Planning:</strong> The Beta-Geometric model typically predicts higher long-term retention than homogeneous models.</p>
+          <p><strong>CLV Impact:</strong> This results in higher customer lifetime value projections, especially for:</p>
+          <ul>
+            <li>Subscription businesses with a mix of short-term and long-term customers</li>
+            <li>Services where some customers naturally have stronger product-market fit</li>
+            <li>Products with high switching costs for some customer segments</li>
+          </ul>
+          <p><strong>Forecasting:</strong> More accurate retention forecasting leads to better resource planning and company valuation.</p>
+        </div>
+        
+        <div id="simulationImplications" style="display: none;">
+          <p><strong>Customer Base Evolution:</strong> Over time, your active customer base naturally shifts toward more loyal customers.</p>
+          <p><strong>Retention Strategy:</strong> This has important implications:</p>
+          <ul>
+            <li>Early-month efforts should focus on identifying potential long-term customers</li>
+            <li>Measuring cohort retention gives insight into the natural retention curve</li>
+            <li>Acquisition channels that bring in more low-churn customers have higher ROI</li>
+          </ul>
+          <p><strong>Model Validation:</strong> Compare simulated survival curve to actual customer data to validate your Beta parameters.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper functions
+    function betaPDF(x, alpha, beta) {
+      // Beta function approximation
+      function betaFn(a, b) {
+        return Math.exp(logGamma(a) + logGamma(b) - logGamma(a + b));
+      }
+      
+      // Log gamma function using Stirling's approximation
+      function logGamma(z) {
+        if (z < 0.5) {
+          return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
+        }
+        // Stirling's approximation
+        let result = (z - 0.5) * Math.log(z + 4.5) - (z + 4.5);
+        result += Math.log(Math.sqrt(2 * Math.PI));
+        result += 0.918938533204673 / (z + 0.5); // Correction term
+        return result;
+      }
+      
+      if (x <= 0 || x >= 1) return 0;
+      
+      const logBeta = logGamma(alpha) + logGamma(beta) - logGamma(alpha + beta);
+      const logPdf = (alpha - 1) * Math.log(x) + (beta - 1) * Math.log(1 - x) - logBeta;
+      
+      return Math.exp(logPdf);
+    }
+
+    // Generate data for the geometric distribution PMF
+    function generateGeometricPMF(p, periods) {
+      const data = [];
+      const labels = [];
+      
+      for (let t = 1; t <= periods; t++) {
+        const pmf = Math.pow(1 - p, t - 1) * p;
+        data.push(pmf);
+        labels.push(t);
+      }
+      return { data, labels };
+    }
+
+    // Generate geometric survival curve
+    function generateGeometricSurvival(p, periods) {
+      const data = [];
+      const labels = [];
+      let survival = 1;
+      
+      for (let t = 0; t <= periods; t++) {
+        data.push(survival);
+        labels.push(t);
+        survival *= (1 - p);
+      }
+      return { data, labels };
+    }
+
+    // Generate BG survival curve with beta heterogeneity
+    function generateBGSurvival(alpha, beta, periods) {
+      const data = [];
+      const labels = [];
+      
+      for (let t = 0; t <= periods; t++) {
+        // BG survival formula: S(t) = beta / (beta + t * alpha)
+        const survival = beta / (beta + t * alpha);
+        data.push(survival);
+        labels.push(t);
+      }
+      return { data, labels };
+    }
+
+    // Generate beta distributed churn probabilities
+    function generateBetaDistribution(alpha, beta) {
+      const data = [];
+      const labels = [];
+      
+      for (let i = 0; i <= 100; i++) {
+        const x = i / 100;
+        const density = betaPDF(x, alpha, beta);
+        data.push(density);
+        labels.push(x.toFixed(2));
+      }
+      return { data, labels };
+    }
+
+    // Simulate customer data with heterogeneous churn rates
+    function simulateCustomerData(numCustomers, alpha, beta, maxPeriods) {
+      // Array to track active customers each period
+      const activeCounts = Array(maxPeriods + 1).fill(0);
+      activeCounts[0] = numCustomers; // All start active
+      
+      // For visualization, create segments to show in different colors
+      const segmentData = [
+        { name: "Low Churn", color: "rgba(136, 132, 216, 0.8)", count: Array(maxPeriods + 1).fill(0) },
+        { name: "Medium Churn", color: "rgba(130, 202, 157, 0.8)", count: Array(maxPeriods + 1).fill(0) },
+        { name: "High Churn", color: "rgba(255, 115, 0, 0.8)", count: Array(maxPeriods + 1).fill(0) }
+      ];
+      
+      // Function to draw from beta distribution
+      const drawFromBeta = (a, b) => {
+        // Using approximation method
+        const u = Math.random();
+        const v = Math.random();
+        const x = Math.pow(u, 1/a);
+        const y = Math.pow(v, 1/b);
+        return x / (x + y);
+      };
+      
+      // Assign churn probabilities to customers and simulate their behavior
+      for (let i = 0; i < numCustomers; i++) {
+        // Draw individual churn probability from Beta(alpha, beta)
+        const churnProb = drawFromBeta(alpha, beta);
+        
+        // Assign to segment for visualization
+        let segmentIndex;
+        if (churnProb < 0.1) {
+          segmentIndex = 0; // Low churn
+        } else if (churnProb < 0.3) {
+          segmentIndex = 1; // Medium churn
+        } else {
+          segmentIndex = 2; // High churn
+        }
+        
+        // This customer is active at the start
+        segmentData[segmentIndex].count[0]++;
+        
+        // Simulate this customer's behavior over time
+        let active = true;
+        for (let t = 1; t <= maxPeriods; t++) {
+          if (!active) continue;
+          
+          // Check if customer churns this period
+          if (Math.random() < churnProb) {
+            active = false;
+          } else {
+            // Customer remains active
+            activeCounts[t]++;
+            segmentData[segmentIndex].count[t]++;
+          }
+        }
+      }
+      
+      // Format data for charting
+      const chartData = {
+        labels: Array.from({length: maxPeriods + 1}, (_, i) => i),
+        activeCount: activeCounts,
+        activeRate: activeCounts.map(count => count / numCustomers)
+      };
+      
+      // Format segmented data
+      const segmentedChartData = {
+        labels: Array.from({length: maxPeriods + 1}, (_, i) => i),
+        segments: segmentData.map(segment => ({
+          name: segment.name,
+          color: segment.color,
+          count: segment.count,
+          rate: segment.count.map(count => count / numCustomers)
+        }))
+      };
+      
+      return { chartData, segmentedChartData };
+    }
+
+    // Chart and UI setup
+    let mainChart = null;
+    let currentView = 'beta';
+    
+    // Parameters
+    let alpha = 1.0;
+    let beta = 4.0;
+    let churnRate = 20; // in percent
+    let periods = 24;
+    let customers = 1000;
+    let showSegments = true;
+    
+    // Initialize chart
+    function initChart() {
+      const ctx = document.getElementById('mainChart').getContext('2d');
+      mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Beta PDF',
+            data: [],
+            borderColor: 'rgba(136, 132, 216, 1)',
+            backgroundColor: 'rgba(136, 132, 216, 0.3)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Churn Probability'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Probability Density'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Update chart based on current view and parameters
+    function updateChart() {
+      if (!mainChart) return;
+      
+      // Calculate statistics
+      const betaMean = alpha / (alpha + beta);
+      const betaVariance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
+      const meanLifetime = 1 / betaMean;
+      
+      // Update statistics display
+      document.getElementById('meanChurn').textContent = (betaMean * 100).toFixed(1);
+      document.getElementById('meanLifetime').textContent = meanLifetime.toFixed(1);
+      document.getElementById('betaVariance').textContent = betaVariance.toFixed(3);
+      
+      // Update chart based on current view
+      switch(currentView) {
+        case 'beta':
+          const betaData = generateBetaDistribution(alpha, beta);
+          mainChart.data.labels = betaData.labels;
+          mainChart.data.datasets = [{
+            label: 'Beta PDF',
+            data: betaData.data,
+            borderColor: 'rgba(136, 132, 216, 1)',
+            backgroundColor: 'rgba(136, 132, 216, 0.3)',
+            fill: true,
+            tension: 0.4
+          }];
+          mainChart.options.scales.x.title.text = 'Churn Probability';
+          mainChart.options.scales.y.title.text = 'Probability Density';
+          mainChart.config.type = 'line';
+          break;
+          
+        case 'geometric':
+          const geoData = generateGeometricPMF(churnRate/100, periods);
+          mainChart.data.labels = geoData.labels;
+          mainChart.data.datasets = [{
+            label: 'Geometric PMF',
+            data: geoData.data,
+            borderColor: 'rgba(130, 202, 157, 1)',
+            backgroundColor: 'rgba(130, 202, 157, 0.3)',
+            fill: true,
+            tension: 0
+          }];
+          mainChart.options.scales.x.title.text = 'Time Period Until Churn';
+          mainChart.options.scales.y.title.text = 'Probability Mass';
+          mainChart.config.type = 'bar';
+          break;
+          
+        case 'survival':
+          const geoSurvival = generateGeometricSurvival(churnRate/100, periods);
+          const bgSurvival = generateBGSurvival(alpha, beta, periods);
+          
+          mainChart.data.labels = bgSurvival.labels;
+          mainChart.data.datasets = [
+            {
+              label: 'Geometric (Homogeneous)',
+              data: geoSurvival.data,
+              borderColor: 'rgba(255, 115, 0, 1)',
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0
+            },
+            {
+              label: 'Beta-Geometric (Heterogeneous)',
+              data: bgSurvival.data,
+              borderColor: 'rgba(136, 132, 216, 1)',
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0
+            }
+          ];
+          mainChart.options.scales.x.title.text = 'Time Period';
+          mainChart.options.scales.y.title.text = 'Survival Probability';
+          mainChart.config.type = 'line';
+          break;
+          
+        case 'simulation':
+          const simData = simulateCustomerData(customers, alpha, beta, periods);
+          const bgCurve = generateBGSurvival(alpha, beta, periods);
+          
+          if (showSegments) {
+            // Segmented view
+            const segmentDatasets = simData.segmentedChartData.segments.map(segment => ({
+              label: segment.name + ' Customers',
+              data: segment.rate,
+              borderColor: segment.color,
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0
+            }));
+            
+            // Add theoretical curve
+            segmentDatasets.push({
+              label: 'Theoretical BG Curve',
+              data: bgCurve.data,
+              borderColor: 'rgba(0, 0, 0, 1)',
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0
+            });
+            
+            mainChart.data.labels = simData.segmentedChartData.labels;
+            mainChart.data.datasets = segmentDatasets;
+          } else {
+            // Total view
+            mainChart.data.labels = simData.chartData.labels;
+            mainChart.data.datasets = [
+              {
+                label: 'Active Rate',
+                data: simData.chartData.activeRate,
+                borderColor: 'rgba(136, 132, 216, 1)',
+                backgroundColor: 'transparent',
+                fill: false,
+                tension: 0,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Theoretical BG Curve',
+                data: bgCurve.data,
+                borderColor: 'rgba(255, 115, 0, 1)',
+                backgroundColor: 'transparent',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0,
+                yAxisID: 'y'
+              }
+            ];
+          }
+          
+          mainChart.options.scales.x.title.text = 'Time Period';
+          mainChart.options.scales.y.title.text = 'Active Rate';
+          mainChart.config.type = 'line';
+          break;
+      }
+      
+      mainChart.update();
+    }
+    
+    // Handle parameter changes
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Update active tab
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Update current view
+          currentView = tab.dataset.view;
+          
+          // Show/hide controls based on view
+          document.getElementById('churnRateControl').style.display = 
+            currentView === 'geometric' ? 'block' : 'none';
+          document.getElementById('periodsControl').style.display = 
+            currentView !== 'beta' ? 'block' : 'none';
+          document.getElementById('simulationControl').style.display = 
+            currentView === 'simulation' ? 'block' : 'none';
+          document.getElementById('segmentsControl').style.display = 
+            currentView === 'simulation' ? 'block' : 'none';
+          
+          // Update explanation text
+          updateExplanationText();
+          
+          // Update chart
+          updateChart();
+        });
+      });
+      
+      // Parameter sliders
+      document.getElementById('alpha').addEventListener('input', (e) => {
+        alpha = parseFloat(e.target.value);
+        document.getElementById('alphaValue').textContent = alpha.toFixed(1);
+        updateChart();
+        updateExplanationText();
+      });
+      
+      document.getElementById('beta').addEventListener('input', (e) => {
+        beta = parseFloat(e.target.value);
+        document.getElementById('betaValue').textContent = beta.toFixed(1);
+        updateChart();
+        updateExplanationText();
+      });
+      
+      document.getElementById('churnRate').addEventListener('input', (e) => {
+        churnRate = parseInt(e.target.value);
+        document.getElementById('churnRateValue').textContent = churnRate;
+        updateChart();
+      });
+      
+      document.getElementById('periods').addEventListener('input', (e) => {
+        periods = parseInt(e.target.value);
+        document.getElementById('periodsValue').textContent = periods;
+        updateChart();
+      });
+      
+      document.getElementById('customers').addEventListener('input', (e) => {
+        customers = parseInt(e.target.value);
+        document.getElementById('customersValue').textContent = customers;
+        updateChart();
+      });
+      
+      document.getElementById('showSegments').addEventListener('change', (e) => {
+        showSegments = e.target.checked;
+        updateChart();
+      });
+    }
+    
+    // Update explanation text based on current view
+    function updateExplanationText() {
+      // Update model explanation
+      const modelExplanation = document.getElementById('modelExplanation');
+      
+      switch(currentView) {
+        case 'beta':
+          modelExplanation.innerHTML = `
+            <h3>Understanding Beta Distribution:</h3>
+            <div>
+              <p><strong>Beta Distribution:</strong> Models how churn probabilities vary across your customer base.</p>
+              <p><strong>Parameters:</strong> α = ${alpha.toFixed(1)}, β = ${beta.toFixed(1)}</p>
+              <p><strong>Interpretation:</strong> Each customer has their own churn probability drawn from this distribution.</p>
+              <ul>
+                <li>Lower α creates more weight near zero (more loyal customers)</li>
+                <li>Lower β creates more weight near one (more quick churners)</li>
+                <li>Equal α and β creates a symmetrical distribution</li>
+              </ul>
+            </div>
+          `;
+          break;
+          
+        case 'geometric':
+          modelExplanation.innerHTML = `
+            <h3>Understanding Geometric Distribution:</h3>
+            <div>
+              <p><strong>Geometric Distribution:</strong> Models the probability of churning at a specific time period.</p>
+              <p><strong>Parameter:</strong> p = ${(churnRate/100).toFixed(2)} (churn probability)</p>
+              <p><strong>Interpretation:</strong> If all customers had the same churn rate of ${churnRate}%, this shows when they would leave.</p>
+              <ul>
+                <li>Probability mass function (PMF): P(T=t) = (1-p)^(t-1) * p</li>
+                <li>Expected time until churn: E[T] = 1/p = ${(1/(churnRate/100)).toFixed(1)} periods</li>
+                <li>Key limitation: Assumes all customers have identical churn probability</li>
+              </ul>
+            </div>
+          `;
+          break;
+          
+        case 'survival':
+          modelExplanation.innerHTML = `
+            <h3>Understanding Survival Curves:</h3>
+            <div>
+              <p><strong>Survival Curves:</strong> Show the probability that a customer remains active after t periods.</p>
+              <p><strong>Comparison:</strong> The Beta-Geometric model produces a non-exponential curve that better matches real-world data.</p>
+              <ul>
+                <li><strong>Geometric:</strong> S(t) = (1-p)^t</li>
+                <li><strong>Beta-Geometric:</strong> S(t) = β/(β + t*α)</li>
+                <li>Notice how the BG curve has a thicker "tail" - this reflects how low-churn customers persist</li>
+              </ul>
+            </div>
+          `;
+          break;
+          
+        case 'simulation':
+          modelExplanation.innerHTML = `
+            <h3>Understanding Customer Simulation:</h3>
+            <div>
+              <p><strong>Customer Simulation:</strong> Simulates ${customers} customers with heterogeneous churn rates.</p>
+              <p><strong>Process:</strong> Each customer is assigned a churn probability from Beta(α,β), then their behavior is simulated over time.</p>
+              <ul>
+                <li>The segmented view shows how different customer types persist over time</li>
+                <li>Low-churn customers (p &lt; 10%) make up an increasing proportion of the base</li>
+                <li>High-churn customers (p &gt; 30%) diminish quickly</li>
+              </ul>
+            </div>
+          `;
+          break;
+      }
+      
+      // Update business implications
+      document.getElementById('betaImplications').style.display = currentView === 'beta' ? 'block' : 'none';
+      document.getElementById('geometricImplications').style.display = currentView === 'geometric' ? 'block' : 'none';
+      document.getElementById('survivalImplications').style.display = currentView === 'survival' ? 'block' : 'none';
+      document.getElementById('simulationImplications').style.display = currentView === 'simulation' ? 'block' : 'none';
+    }
+    
+    // Initialize the application
+    function init() {
+      initChart();
+      setupEventListeners();
+      updateChart();
+    }
+    
+    // Start the app when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
