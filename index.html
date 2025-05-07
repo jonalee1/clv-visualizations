@@ -13,27 +13,18 @@
       --light-color: #f8f9fa;
       --dark-color: #212529;
     }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       line-height: 1.6;
       color: var(--dark-color);
       background-color: #f5f8ff;
-      padding: 0;
     }
-    
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
-    
     header {
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: white;
@@ -43,230 +34,68 @@
       border-radius: 0 0 10px 10px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
-    h1 {
-      font-size: 2.8rem;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-    
-    header p {
-      font-size: 1.2rem;
-      max-width: 800px;
-      margin: 0 auto;
-      opacity: 0.9;
-    }
-    
-    .github-link {
-      display: inline-block;
-      margin-top: 20px;
-      background-color: rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 8px 20px;
-      border-radius: 30px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s;
-    }
-    
-    .github-link:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-    }
-    
-    .github-link i {
-      margin-right: 8px;
-    }
-    
-    .intro {
-      text-align: center;
-      margin-bottom: 50px;
-    }
-    
-    .intro h2 {
-      font-size: 2rem;
-      margin-bottom: 15px;
-      color: var(--secondary-color);
-    }
-    
-    .intro p {
-      font-size: 1.1rem;
-      max-width: 800px;
-      margin: 0 auto 15px;
-      color: #555;
-    }
-    
+    h1 { font-size: 2.8rem; margin-bottom: 10px; font-weight: 700; }
+    header p { font-size: 1.2rem; max-width: 800px; margin: 0 auto; opacity: 0.9; }
+    .intro { text-align: center; margin-bottom: 40px; }
+    .intro h2 { font-size: 2rem; margin-bottom: 15px; color: var(--secondary-color); }
+    .intro p { font-size: 1.1rem; max-width: 800px; margin: 0 auto 15px; color: #555; }
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 30px;
       margin-bottom: 60px;
     }
-    
+    .card.span-all { grid-column: 1 / -1; }
     .card {
       background-color: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    
-    .card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    
-    .card-header {
-      height: 160px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .card-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.9);
-      transition: all 0.5s;
-    }
-    
-    .card:hover .card-img {
-      transform: scale(1.05);
-    }
-    
+    .card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+    .card-header { height: 160px; position: relative; overflow: hidden; }
+    .card-img { width:100%; height:100%; object-fit:cover; filter:brightness(0.9); transition: all 0.5s; }
+    .card:hover .card-img { transform: scale(1.05); }
     .card-icon {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      width: 50px;
-      height: 50px;
-      background-color: var(--primary-color);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.4rem;
+      position:absolute; top:15px; right:15px; width:50px; height:50px;
+      background-color:var(--primary-color); border-radius:50%; display:flex;
+      align-items:center; justify-content:center; color:white; font-size:1.4rem;
     }
-    
-    .card-body {
-      padding: 25px;
-    }
-    
-    .card-title {
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-      color: var(--secondary-color);
-    }
-    
-    .card-text {
-      color: #555;
-      margin-bottom: 20px;
-      line-height: 1.7;
-    }
-    
+    .card-body { padding:25px; }
+    .card-title { font-size:1.4rem; margin-bottom:15px; color:var(--secondary-color); }
+    .card-subtitle {font-size:1.4rem;  margin-top:15px; margin-bottom:15px; text-align: center; color:var(--secondary-color); }
+    .card-text { color:#555; margin-bottom:20px; line-height:1.7; }
     .card-link {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: var(--primary-color);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 500;
+      display:inline-block; padding:10px 20px; background-color:var(--primary-color);
+      color:white; text-decoration:none; border-radius:6px; font-weight:500;
       transition: all 0.3s;
     }
-    
-    .card-link:hover {
-      background-color: var(--secondary-color);
-    }
-    
+    .card-link:hover { background-color: var(--secondary-color); }
     .card-footer {
-      background-color: rgba(67, 97, 238, 0.05);
-      padding: 15px 25px;
-      color: #777;
-      font-size: 0.9rem;
+      background-color: rgba(67,97,238,0.05); padding:15px 25px;
+      color:#777; font-size:0.9rem;
     }
-    
     .features {
-      background-color: white;
-      padding: 60px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 50px;
+      background-color:white; padding:60px 30px; border-radius:10px;
+      box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:50px;
     }
-    
-    .features h2 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 40px;
-      color: var(--secondary-color);
+    .features h2 { text-align:center; font-size:2rem; margin-bottom:40px; color:var(--secondary-color); }
+    .features-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap:30px; }
+    .feature { display:flex; align-items:center; }
+    .feature-icon { flex-shrink:0; width:50px; height:50px; background-color:rgba(67,97,238,0.1);
+      border-radius:10px; display:flex; align-items:center; justify-content:center;
+      color:var(--primary-color); font-size:1.4rem; margin-right:15px;
     }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
+    .feature-text h3 { font-size:1.1rem; margin-bottom:5px; color:var(--secondary-color); }
+    .feature-text p { font-size:0.95rem; color:#666; }
+    footer { background-color: var(--dark-color); color:white; padding:30px 20px;
+      text-align:center; border-radius:10px 10px 0 0; margin-top:30px;
     }
-    
-    .feature {
-      display: flex;
-      align-items: center;
-    }
-    
-    .feature-icon {
-      flex-shrink: 0;
-      width: 50px;
-      height: 50px;
-      background-color: rgba(67, 97, 238, 0.1);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary-color);
-      font-size: 1.4rem;
-      margin-right: 15px;
-    }
-    
-    .feature-text h3 {
-      font-size: 1.1rem;
-      margin-bottom: 5px;
-      color: var(--secondary-color);
-    }
-    
-    .feature-text p {
-      font-size: 0.95rem;
-      color: #666;
-    }
-    
-    footer {
-      background-color: var(--dark-color);
-      color: white;
-      padding: 30px 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin-top: 30px;
-    }
-    
-    footer p {
-      max-width: 800px;
-      margin: 0 auto;
-      opacity: 0.8;
-    }
-    
-    .highlight {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .highlight::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: 3px;
-      width: 100%;
-      height: 8px;
-      background-color: rgba(67, 97, 238, 0.2);
-      z-index: -1;
+    footer p { max-width:800px; margin:0 auto; opacity:0.8; }
+    .highlight { position:relative; display:inline-block; }
+    .highlight::after { content:''; position:absolute; left:0; bottom:3px;
+      width:100%; height:8px; background-color:rgba(67,97,238,0.2); z-index:-1;
     }
   </style>
 </head>
@@ -277,153 +106,110 @@
       <p>A collection of interactive visualizations for understanding probabilistic customer lifetime value models</p>
     </div>
   </header>
-  
+
   <div class="container">
     <section class="intro">
-      <h2>Explore Customer Lifetime Value </h2>
+      <h2>Explore Customer Lifetime Value</h2>
       <p>These interactive tools help you understand the mathematical models behind modern customer lifetime value (CLV) predictions and how different factors impact the long-term value of customers.</p>
       <p>Each visualization allows you to manipulate model parameters in real-time to see their effects on customer behavior patterns and value forecasts.</p>
     </section>
 
-      <div class="card">
+    <section class="cards">
+      <div class="card span-all">
         <div class="card-header">
           <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&auto=format" alt="Business analysis" class="card-img">
-          <div class="card-icon">
-            <i class="fas fa-dollar-sign"></i>
-          </div>
+          <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
         </div>
         <div class="card-body">
           <h3 class="card-title">Traditional CLV Models</h3>
-          <p class="card-text">Understand traditional deterministic CLV calculations based on fixed churn rates, including basic, growth, and segment models. Compare with probabilistic approaches.</p>
+          <p class="card-text">Understand deterministic CLV calculations with fixed churn rates and growth segments.</p>
           <a href="traditional-clv.html" class="card-link">Launch</a>
         </div>
-        <div class="card-footer">
-          <strong>Key Concepts:</strong> Deterministic CLV, Growth Models, Segmentation
+        <div class="card-footer"><strong>Key Concepts:</strong> Deterministic CLV, Growth Models</div>
+        </div>
+      
+      <div class="card span-all">
+        <div class="card-subtitle">
+          <h2 >Building a Probabilistic CLV Components</h2>
         </div>
       </div>
-    <section class="cards"> </section>     
-    
-      <div class="card">
+        <div class="card">
         <div class="card-header">
-          <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=600&auto=format" alt="Computer with charts" class="card-img">
-          <div class="card-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
+          <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=600&auto=format" alt="Charts" class="card-img">
+          <div class="card-icon"><i class="fas fa-chart-line"></i></div>
         </div>
         <div class="card-body">
           <h3 class="card-title">1. Lifetime Model</h3>
-          <p class="card-text">Visualize customer retention patterns with heterogeneous churn rates. See how the Beta-Geometric model creates more realistic survival curves compared to traditional exponential retention models.</p>
+          <p class="card-text">Visualize Beta-Geometric retention curves with customer heterogeneity.</p>
           <a href="beta-geometric.html" class="card-link">Launch</a>
         </div>
-        <div class="card-footer">
-          <strong>Key Concepts:</strong> Retention, Churn, Customer Heterogeneity
-        </div>
+        <div class="card-footer"><strong>Key Concepts:</strong> Churn, Prob(Alive)</div>
       </div>
-    <section class="cards"> </section>     
-          
+      
       <div class="card">
         <div class="card-header">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format" alt="Data models" class="card-img">
-          <div class="card-icon">
-            <i class="fas fa-shopping-cart"></i>
-          </div>
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format" alt="Transactions" class="card-img">
+          <div class="card-icon"><i class="fas fa-shopping-cart"></i></div>
         </div>
         <div class="card-body">
-          <h3 class="card-title">2. Purchase Frequency Model</h3>
-          <p class="card-text">Compare Poisson vs. Negative Binomial distributions for modeling purchase frequency. See why accounting for customer heterogeneity creates more accurate predictions.</p>
+          <h3 class="card-title">2. Purchase Frequency</h3>
+          <p class="card-text">Compare Poisson vs. Negative Binomial distributions for purchase counts.</p>
           <a href="purchase-frequency.html" class="card-link">Launch</a>
         </div>
-        <div class="card-footer">
-          <strong>Key Concepts:</strong> Poisson, NBD, Purchase Heterogeneity
-        </div>
-      </div>    
-    <section class="cards"> </section>     
-    
+        <div class="card-footer"><strong>Key Concepts:</strong> Poisson, NBD</div>
+      </div>
+      
       <div class="card">
         <div class="card-header">
-          <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600&auto=format" alt="Statistics calculations" class="card-img">
-          <div class="card-icon">
-            <i class="fas fa-calculator"></i>
-          </div>
+          <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600&auto=format" alt="Statistics" class="card-img">
+          <div class="card-icon"><i class="fas fa-calculator"></i></div>
         </div>
         <div class="card-body">
-          <h3 class="card-title">3. Monetary Value Model</h3>
-          <p class="card-text">Explore how Gamma-Gamma mixture characterizes transaction patterns and capture spending variability, both between-customer heterogeneity and within-customer purchase variation.</p>
+          <h3 class="card-title">3. Monetary Value</h3>
+          <p class="card-text">Explore Gamma-Gamma for spending variability and expected order value.</p>
           <a href="gamma-gamma.html" class="card-link">Launch</a>
         </div>
-        <div class="card-footer">
-          <strong>Key Concepts:</strong> Gamma Distribution, Expected Spending, CLV Projection
+        <div class="card-footer"><strong>Key Concepts:</strong> Gamma-Gamma, Spending</div>
         </div>
-      </div>    
-    <section class="cards"> </section>     
-    
-      <div class="card">
+      
+      <div class="card span-all">
         <div class="card-header">
-          <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format" alt="Customer analysis" class="card-img">
-          <div class="card-icon">
-            <i class="fas fa-users"></i>
-          </div>
+          <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format" alt="Unified model" class="card-img">
+          <div class="card-icon"><i class="fas fa-users"></i></div>
         </div>
         <div class="card-body">
-          <h3 class="card-title">Unified Probabilistic CLV Model</h3>
-          <p class="card-text">Explore the combination of three probabilistic models (BG/NBD/GG) to create a comprehensive CLV prediction. Understand retention, frequency, and monetary value components.</p>
+          <h3 class="card-title">Unified Probabilistic CLV</h3>
+          <p class="card-text">Combine retention, frequency, and monetary models into one dashboard.</p>
           <a href="unified-clv.html" class="card-link">Launch</a>
         </div>
-        <div class="card-footer">
-          <strong>Key Concepts:</strong> Unified Modeling, Customer Segments, Marketing Strategy
+        <div class="card-footer"><strong>Key Concepts:</strong> CLV Integration with Lifetime, Frequency, and Monetary Value</div>
         </div>
-      </div>    
-    <section class="cards"> </section>
+    </section>
     
     <section class="features">
-      <h2>Key Features of These Visualizations</h2>
+      <h2>Key Features</h2>
       <div class="features-grid">
         <div class="feature">
-          <div class="feature-icon">
-            <i class="fas fa-sliders-h"></i>
-          </div>
-          <div class="feature-text">
-            <h3>Interactive Controls</h3>
-            <p>Adjust all model parameters in real-time to see their effects on predictions</p>
-          </div>
+          <div class="feature-icon"><i class="fas fa-sliders-h"></i></div>
+          <div class="feature-text"><h3>Interactive Controls</h3><p>Real-time parameter tweaking.</p></div>
         </div>
-        
         <div class="feature">
-          <div class="feature-icon">
-            <i class="fas fa-chart-bar"></i>
-          </div>
-          <div class="feature-text">
-            <h3>Live Visualizations</h3>
-            <p>Charts and graphs update instantly as you modify parameters</p>
-          </div>
+          <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+          <div class="feature-text"><h3>Live Charts</h3><p>Instant visual feedback.</p></div>
         </div>
-        
         <div class="feature">
-          <div class="feature-icon">
-            <i class="fas fa-graduation-cap"></i>
-          </div>
-          <div class="feature-text">
-            <h3>Educational Explanations</h3>
-            <p>Clear explanations of mathematical models and business applications</p>
-          </div>
+          <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+          <div class="feature-text"><h3>Educational Focus</h3><p>Clear model explanations.</p></div>
         </div>
-        
         <div class="feature">
-          <div class="feature-icon">
-            <i class="fas fa-briefcase"></i>
-          </div>
-          <div class="feature-text">
-            <h3>Business Applications</h3>
-            <p>Practical insights for marketing, retention, and acquisition strategies</p>
-          </div>
+          <div class="feature-icon"><i class="fas fa-briefcase"></i></div>
+          <div class="feature-text"><h3>Business Ready</h3><p>Practical marketing use cases.</p></div>
         </div>
-        
       </div>
     </section>
   </div>
-  
   <footer>
-      These visualizations are designed for educational purposes.
+    <p>These visualizations are designed for educational purposes.</p>
   </footer>
 </body>
 </html>
