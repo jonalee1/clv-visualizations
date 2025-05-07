@@ -6,9 +6,9 @@ Each tool allows you to **manipulate model parameters in real time** to see thei
 
 ---
 
-## 🔍 Key CLV Models  
+## 🔍 Key Interactive CLV Modules  
 
-### 🏛 Traditional CLV Models  
+### 🏛 Traditional CLV Model  
 Dive into **deterministic CLV calculations** based on fixed churn rates. Explore basic, growth, and segment models, then see how they stack up against **probabilistic approaches** for a more dynamic prediction.  
 
 ### ⏳ Lifetime Model  
