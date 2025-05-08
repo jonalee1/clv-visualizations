@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFM Strategic Marketing View</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root" class="p-4"></div>
+
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    
+const RFMStrategicView = () => {
+  // Define strategy colors
+  const strategyColors = {
+    churn: '#f87171',      // red-400
+    loyalty: '#60a5fa',    // blue-400
+    upsell: '#4ade80',     // green-400
+    reactivation: '#a78bfa' // purple-400
+  };
+
+  return (
+    <div className="p-4 bg-white rounded-lg shadow">
+      <h1 className="text-2xl font-bold mb-6 text-center">RFM Strategic Marketing View</h1>
+
+      {/* Strategic Views Tabs */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-3">Three Strategic Views of RFM Segments</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* Churn Prevention */}
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h3 className="font-bold text-lg text-red-700 mb-2">Churn Prevention</h3>
+            <p className="text-sm mb-3">Focus on segments showing declining engagement to prevent customer loss.</p>
+            <div className="space-y-2">
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-red-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">At Risk</p>
+                  <p className="text-xs text-gray-600">11% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-red-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Can't Lose Them</p>
+                  <p className="text-xs text-gray-600">7% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-red-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">About To Sleep</p>
+                  <p className="text-xs text-gray-600">10% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-red-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Need Attention</p>
+                  <p className="text-xs text-gray-600">8% of customers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Loyalty Program */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="font-bold text-lg text-blue-700 mb-2">Loyalty Program</h3>
+            <p className="text-sm mb-3">Nurture high-value customers to maintain and increase their engagement.</p>
+            <div className="space-y-2">
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-blue-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Champions</p>
+                  <p className="text-xs text-gray-600">15% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-blue-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Loyal Customers</p>
+                  <p className="text-xs text-gray-600">12% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-blue-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Potential Loyalist</p>
+                  <p className="text-xs text-gray-600">9% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-blue-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Promising</p>
+                  <p className="text-xs text-gray-600">6% of customers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Upsell/Cross-sell */}
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h3 className="font-bold text-lg text-green-700 mb-2">Upsell/Cross-sell</h3>
+            <p className="text-sm mb-3">Target customers receptive to additional products or premium offerings.</p>
+            <div className="space-y-2">
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-green-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Champions</p>
+                  <p className="text-xs text-gray-600">15% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-green-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Loyal Customers</p>
+                  <p className="text-xs text-gray-600">12% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-green-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">New Customers</p>
+                  <p className="text-xs text-gray-600">7% of customers</p>
+                </div>
+              </div>
+              <div className="p-2 bg-white rounded flex items-center">
+                <div className="w-3 h-12 bg-green-400 rounded-l mr-2"></div>
+                <div>
+                  <p className="font-semibold text-sm">Potential Loyalist</p>
+                  <p className="text-xs text-gray-600">9% of customers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RFM Map with Strategic Overlay */}
+      <h2 className="text-xl font-bold mb-3">RFM Map with Strategic Overlay</h2>
+      <div className="overflow-x-auto">
+        <div className="min-w-max">
+          <div className="grid grid-cols-5 gap-1 mb-2">
+            <div className="col-start-2 text-center text-sm font-semibold">Low F</div>
+            <div className="text-center text-sm font-semibold">Medium F</div>
+            <div className="text-center text-sm font-semibold">High F</div>
+            <div className="text-center text-sm font-semibold">Very High F</div>
+          </div>
+          
+          {/* R5 Row (Very Recent) */}
+          <div className="grid grid-cols-5 gap-1 mb-1">
+            <div className="flex items-center justify-end pr-2 text-sm font-semibold">Very Recent (R5)</div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400">
+              <span className="font-bold">New Customers</span>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400">
+              <span className="font-bold">Potential Loyalist</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400 col-span-2">
+              <span className="font-bold">Champions</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+          </div>
+          
+          {/* R4 Row (Recent) */}
+          <div className="grid grid-cols-5 gap-1 mb-1">
+            <div className="flex items-center justify-end pr-2 text-sm font-semibold">Recent (R4)</div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400">
+              <span className="font-bold">Promising</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+            </div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400">
+              <span className="font-bold">Potential Loyalist</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+            <div className="p-3 bg-green-100 rounded text-xs border-2 border-green-400 col-span-2">
+              <span className="font-bold">Loyal Customers</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+          </div>
+          
+          {/* R3 Row (Medium Recency) */}
+          <div className="grid grid-cols-5 gap-1 mb-1">
+            <div className="flex items-center justify-end pr-2 text-sm font-semibold">Medium (R3)</div>
+            <div className="p-3 bg-yellow-100 rounded text-xs border-2 border-red-400">
+              <span className="font-bold">About To Sleep</span>
+              <div className="mt-1 p-1 rounded bg-red-400 text-white text-center">Churn Prevention</div>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded text-xs border-2 border-red-400">
+              <span className="font-bold">Need Attention</span>
+              <div className="mt-1 p-1 rounded bg-red-400 text-white text-center">Churn Prevention</div>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded text-xs border-2 border-blue-400 col-span-2">
+              <span className="font-bold">Loyal Customers</span>
+              <div className="mt-1 p-1 rounded bg-blue-400 text-white text-center">Loyalty Program</div>
+              <div className="mt-1 p-1 rounded bg-green-400 text-white text-center">Upsell/Cross-sell</div>
+            </div>
+          </div>
+          
+          {/* R2 Row (Not Recent) */}
+          <div className="grid grid-cols-5 gap-1 mb-1">
+            <div className="flex items-center justify-end pr-2 text-sm font-semibold">Not Recent (R2)</div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-purple-400">
+              <span className="font-bold">Hibernating</span>
+              <div className="mt-1 p-1 rounded bg-purple-400 text-white text-center">Reactivation</div>
+            </div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-red-400">
+              <span className="font-bold">At Risk</span>
+              <div className="mt-1 p-1 rounded bg-red-400 text-white text-center">Churn Prevention</div>
+            </div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-red-400 col-span-2">
+              <span className="font-bold">Can't Lose Them</span>
+              <div className="mt-1 p-1 rounded bg-red-400 text-white text-center">Churn Prevention</div>
+            </div>
+          </div>
+          
+          {/* R1 Row (Lost) */}
+          <div className="grid grid-cols-5 gap-1 mb-1">
+            <div className="flex items-center justify-end pr-2 text-sm font-semibold">Lost (R1)</div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-purple-400">
+              <span className="font-bold">Lost</span>
+              <div className="mt-1 p-1 rounded bg-purple-400 text-white text-center">Reactivation</div>
+            </div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-purple-400">
+              <span className="font-bold">Lost</span>
+              <div className="mt-1 p-1 rounded bg-purple-400 text-white text-center">Reactivation</div>
+            </div>
+            <div className="p-3 bg-red-100 rounded text-xs border-2 border-red-400 col-span-2">
+              <span className="font-bold">Can't Lose Them</span>
+              <div className="mt-1 p-1 rounded bg-red-400 text-white text-center">Churn Prevention</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Strategy Percentage Breakdown */}
+      <h2 className="text-xl font-bold mt-8 mb-3">Customer Distribution by Strategy</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-bold mb-3">Primary Strategy Distribution</h3>
+            <div className="flex h-6 rounded-lg overflow-hidden mb-3">
+              <div className="bg-blue-400 h-full" style={{width: "42%"}}></div>
+              <div className="bg-red-400 h-full" style={{width: "36%"}}></div>
+              <div className="bg-green-400 h-full" style={{width: "15%"}}></div>
+              <div className="bg-purple-400 h-full" style={{width: "7%"}}></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-blue-400 mr-2"></div>
+                <span>Loyalty Program: 42%</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-red-400 mr-2"></div>
+                <span>Churn Prevention: 36%</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-green-400 mr-2"></div>
+                <span>Upsell/Cross-sell: 15%</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-purple-400 mr-2"></div>
+                <span>Reactivation: 7%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-bold mb-3">Strategy Resource Allocation Recommendations</h3>
+            <p className="text-sm mb-2">Based on customer value potential and strategic importance:</p>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Loyalty Program</span>
+                  <span>35%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-blue-400 h-2.5 rounded-full" style={{width: "35%"}}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Churn Prevention</span>
+                  <span>30%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-red-400 h-2.5 rounded-full" style={{width: "30%"}}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Upsell/Cross-sell</span>
+                  <span>25%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-green-400 h-2.5 rounded-full" style={{width: "25%"}}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Reactivation</span>
+                  <span>10%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-purple-400 h-2.5 rounded-full" style={{width: "10%"}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Strategic Actions Table */}
+      <h2 className="text-xl font-bold mt-8 mb-3">Strategic Actions by Segment</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-4 py-2 text-left border">Segment</th>
+              <th className="px-4 py-2 text-left border">Primary Strategy</th>
+              <th className="px-4 py-2 text-left border">Recommended Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">Champions</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-blue-400 mr-1">Loyalty Program</span>
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-green-400">Upsell/Cross-sell</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Reward them, make them feel valued, ask for reviews, introduce premium offerings</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="px-4 py-2 border font-semibold">Loyal Customers</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-blue-400 mr-1">Loyalty Program</span>
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-green-400">Upsell/Cross-sell</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Upsell higher value products, engage them, recommend new offerings</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">Potential Loyalist</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-blue-400 mr-1">Loyalty Program</span>
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-green-400">Upsell/Cross-sell</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Offer membership or loyalty programs, recommend related products</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="px-4 py-2 border font-semibold">New Customers</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-green-400">Upsell/Cross-sell</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Provide educational content, welcome series, introductory offers</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">Promising</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-blue-400">Loyalty Program</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Create early loyalty offers, recommend entry-level products</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="px-4 py-2 border font-semibold">Need Attention</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-red-400">Churn Prevention</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Reactivation offers, share new features, offer limited-time promotions</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">About To Sleep</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-red-400">Churn Prevention</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Reactivation campaign, win-back offers, request feedback on experience</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="px-4 py-2 border font-semibold">At Risk</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-red-400">Churn Prevention</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Personalized win-back offers, share new products that match preferences</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">Can't Lose Them</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-red-400">Churn Prevention</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Win back with personalized communication, exclusive offers, reconnect</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="px-4 py-2 border font-semibold">Hibernating</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-purple-400">Reactivation</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Reconnect with major incentives, survey to understand disengagement</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-2 border font-semibold">Lost</td>
+              <td className="px-4 py-2 border">
+                <span className="inline-block px-2 py-1 rounded text-xs text-white bg-purple-400">Reactivation</span>
+              </td>
+              <td className="px-4 py-2 border text-sm">Consider exclusion from communications or final attempt reactivation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+
+
+    ReactDOM.render(<RFMStrategicView />, document.getElementById('root'));
+  </script>
+</body>
+</html>
