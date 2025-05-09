@@ -139,9 +139,8 @@
 </head>
 <body>
   <div class="container">
-    <h2>Subscription Business CLV Model</h2>
-    <p>This is a simplified version that works without external dependencies.</p>
-    
+    <h2>Cohort-Based CLV Model</h2>
+      
     <div class="control-grid">
       <div class="control">
         <label>Initial Purchase Amount: $<span id="baseRevenue">150</span></label>
@@ -198,21 +197,6 @@
           <!-- Will be filled by JavaScript -->
         </tbody>
       </table>
-      
-      <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-        <div>
-          <p>Year 1 CLV: $<span id="year1clv">20.00</span></p>
-        </div>
-        <div>
-          <p>Year 2 CLV: $<span id="year2clv">35.00</span></p>
-        </div>
-        <div>
-          <p>Year 3 CLV: $<span id="year3clv">45.00</span></p>
-        </div>
-        <div>
-          <p>Year 4 CLV: $<span id="year4clv">52.00</span></p>
-        </div>
-      </div>
     </div>
     
     <h3 class="text-center font-bold mb-4">CLV Over Time</h3>
@@ -291,7 +275,6 @@
       </div>
     </div>
   </div>
-  
   <script>
     // Format numbers with commas
     function formatNumber(num) {
@@ -507,5 +490,11 @@
     // Start when DOM is loaded
     document.addEventListener('DOMContentLoaded', initialize);
   </script>
-</body>
+  
+  <p></p>
+  <div class="navigation">
+    <a href="index.html">← Back to CLV Models Dashboard</a>
+  </div>  
+
+  </body>
 </html>
