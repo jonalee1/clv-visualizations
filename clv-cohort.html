@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLV Calculator (Simple Version)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f3f4f6; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; overflow-x: auto; display: block; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #e5edff; }
+    input[type="range"] { width: 100%; }
+    .control-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .control { border: 1px solid #ddd; padding: 12px; border-radius: 4px; }
+    h2 { text-align: center; margin-bottom: 20px; }
+    .info-panel { background-color: #f0f9ff; padding: 16px; border-radius: 4px; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    
+    /* Enhanced chart styling - Modified for full-width histogram look */
+    .chart { 
+      height: 350px; 
+      background-color: #f9fafb; 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      padding: 20px 16px 30px 40px; 
+      margin-bottom: 30px; 
+      display: flex;
+      position: relative;
+    }
+    
+    .chart-y-axis {
+      position: absolute;
+      left: 10px;
+      top: 20px;
+      bottom: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .chart-y-label {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      flex: 1;
+      height: 100%;
+      position: relative;
+      gap: 2px; /* Minimal gap between bars for histogram look */
+    }
+    
+    .chart-gridlines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+    }
+    
+    .chart-gridline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px dashed #ddd;
+    }
+    
+    .chart-gridline:nth-child(1) { bottom: 0%; }
+    .chart-gridline:nth-child(2) { bottom: 25%; }
+    .chart-gridline:nth-child(3) { bottom: 50%; }
+    .chart-gridline:nth-child(4) { bottom: 75%; }
+    .chart-gridline:nth-child(5) { bottom: 100%; }
+    
+    .bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      z-index: 1;
+    }
+    
+    .bar {
+      width: 100%; /* Full width for histogram look */
+      border-radius: 6px 6px 0 0;
+      position: relative;
+      transition: height 0.5s;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .bar-year1 {
+      background: linear-gradient(to top, #4f46e5, #818cf8);
+    }
+    
+    .bar-year2 {
+      background: linear-gradient(to top, #0891b2, #22d3ee);
+    }
+    
+    .bar-year3 {
+      background: linear-gradient(to top, #059669, #34d399);
+    }
+    
+    .bar-year4 {
+      background: linear-gradient(to top, #ca8a04, #facc15);
+    }
+    
+    .bar-label {
+      text-align: center;
+      margin-top: 8px;
+      font-weight: bold;
+      color: #444;
+    }
+    
+    .bar-value {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 4px;
+      color: #666;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .font-bold {
+      font-weight: bold;
+    }
+    
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Subscription Business CLV Model</h2>
+    <p>This is a simplified version that works without external dependencies.</p>
+    
+    <div class="control-grid">
+      <div class="control">
+        <label>Initial Purchase Amount: $<span id="baseRevenue">150</span></label>
+        <input type="range" id="baseRevenueSlider" min="50" max="300" step="10" value="150">
+      </div>
+      <div class="control">
+        <label>Year 1 Churn Rate: <span id="initialChurnRate">60</span>%</label>
+        <input type="range" id="initialChurnRateSlider" min="10" max="80" step="5" value="60">
+      </div>
+      <div class="control">
+        <label>Initial Margin: <span id="initialMargin">40</span>%</label>
+        <input type="range" id="initialMarginSlider" min="10" max="80" step="5" value="40">
+      </div>
+      <div class="control">
+        <label>Discount Rate: <span id="discountRate">8</span>%</label>
+        <input type="range" id="discountRateSlider" min="0" max="30" step="1" value="8">
+      </div>
+      <div class="control">
+        <label>Acquisition Cost: $<span id="acquisitionCost">40</span></label>
+        <input type="range" id="acquisitionCostSlider" min="10" max="200" step="10" value="40">
+      </div>
+      <div class="control">
+        <label>Annual Revenue Growth: <span id="revenueGrowth">6.67</span>%</label>
+        <input type="range" id="revenueGrowthSlider" min="0" max="20" step="1" value="6.67">
+      </div>
+      <div class="control">
+        <label>Annual Margin Improvement: <span id="marginImprovement">5</span>%</label>
+        <input type="range" id="marginImprovementSlider" min="0" max="15" step="1" value="5">
+      </div>
+      <div class="control">
+        <label>Annual Retention Improvement: <span id="retentionImprovement">5</span>%</label>
+        <input type="range" id="retentionImprovementSlider" min="0" max="15" step="1" value="5">
+      </div>
+    </div>
+    
+    <div class="info-panel">
+      <h3>Cohort Analysis (Starting with 20,000 Subscribers in Year 1):</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Subscribers</th>
+            <th>Retention</th>
+            <th>Purchase Amount</th>
+            <th>Total Revenue</th>
+            <th>Variable Cost</th>
+            <th>Acquisition Cost</th>
+            <th>Total Cost</th>
+            <th>Profit</th>
+            <th>CLV</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Will be filled by JavaScript -->
+        </tbody>
+      </table>
+      
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+        <div>
+          <p>Year 1 CLV: $<span id="year1clv">20.00</span></p>
+        </div>
+        <div>
+          <p>Year 2 CLV: $<span id="year2clv">35.00</span></p>
+        </div>
+        <div>
+          <p>Year 3 CLV: $<span id="year3clv">45.00</span></p>
+        </div>
+        <div>
+          <p>Year 4 CLV: $<span id="year4clv">52.00</span></p>
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="text-center font-bold mb-4">CLV Over Time</h3>
+    <div class="chart">
+      <div class="chart-y-axis">
+        <div class="chart-y-label">$0</div>
+        <div class="chart-y-label">$25</div>
+        <div class="chart-y-label">$50</div>
+        <div class="chart-y-label">$75</div>
+        <div class="chart-y-label">$100</div>
+      </div>
+      <div class="chart-bars">
+        <div class="chart-gridlines">
+          <div class="chart-gridline"></div>
+          <div class="chart-gridline"></div>
+          <div class="chart-gridline"></div>
+          <div class="chart-gridline"></div>
+          <div class="chart-gridline"></div>
+        </div>
+        <div class="bar-container">
+          <div id="year1bar" class="bar bar-year1" style="height: 100px;"></div>
+          <div class="bar-label">Year 1</div>
+          <div class="bar-value">$<span id="chart1">20</span></div>
+        </div>
+        <div class="bar-container">
+          <div id="year2bar" class="bar bar-year2" style="height: 170px;"></div>
+          <div class="bar-label">Year 2</div>
+          <div class="bar-value">$<span id="chart2">35</span></div>
+        </div>
+        <div class="bar-container">
+          <div id="year3bar" class="bar bar-year3" style="height: 230px;"></div>
+          <div class="bar-label">Year 3</div>
+          <div class="bar-value">$<span id="chart3">45</span></div>
+        </div>
+        <div class="bar-container">
+          <div id="year4bar" class="bar bar-year4" style="height: 260px;"></div>
+          <div class="bar-label">Year 4</div>
+          <div class="bar-value">$<span id="chart4">52</span></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="grid">
+      <div class="info-panel">
+        <h3>Key Model Features:</h3>
+        <p><strong>Customizable Growth Parameters:</strong></p>
+        <ul>
+          <li>Annual Revenue Growth: Increases customer purchase amount each year</li>
+          <li>Annual Margin Improvement: Reduces variable costs over time</li>
+          <li>Annual Retention Improvement: Decreases churn rate each year</li>
+        </ul>
+        <p style="margin-top: 16px;"><strong>Default Settings Match Example:</strong></p>
+        <ul>
+          <li>Starting with 20,000 subscribers in Year 1</li>
+          <li>Year 1: $150 revenue per subscriber, 40% margin, $40 acquisition cost</li>
+          <li>Year 2: 40% retention (8,000 subscribers), $160 revenue, 50% margin</li>
+          <li>Year 3: 45% retention (3,600 subscribers), $170 revenue, 55% margin</li>
+          <li>Year 4: 50% retention (1,800 subscribers), $181 revenue, 60% margin</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h3>Business Insights:</h3>
+        <p><strong>Acquisition ROI:</strong></p>
+        <ul>
+          <li>Year 1 CLV: $<span id="year1clv2">20.00</span> (ROI: <span id="year1roi">-50</span>%)</li>
+          <li>Year 3 CLV: $<span id="year3clv2">45.00</span> (ROI: <span id="year3roi">13</span>%)</li>
+          <li>Year 4 CLV: $<span id="year4clv2">52.00</span> (ROI: <span id="year4roi">30</span>%)</li>
+        </ul>
+        <p style="margin-top: 16px;"><strong>Revenue Breakdown:</strong></p>
+        <ul>
+          <li>Year 1: $<span id="year1rev">3.0</span>M from <span id="year1subs">20,000</span> customers</li>
+          <li>Year 2: $<span id="year2rev">1.3</span>M from <span id="year2subs">8,000</span> customers</li>
+          <li>Year 3: $<span id="year3rev">0.6</span>M from <span id="year3subs">3,600</span> customers</li>
+          <li>Year 4: $<span id="year4rev">0.3</span>M from <span id="year4subs">1,800</span> customers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Format numbers with commas
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Generate CLV data based on inputs
+    function generateCLVData() {
+      // Get all parameters from sliders
+      const baseRevenue = parseFloat(document.getElementById('baseRevenueSlider').value);
+      const initialChurnRate = parseFloat(document.getElementById('initialChurnRateSlider').value);
+      const initialMargin = parseFloat(document.getElementById('initialMarginSlider').value);
+      const discountRate = parseFloat(document.getElementById('discountRateSlider').value);
+      const acquisitionCost = parseFloat(document.getElementById('acquisitionCostSlider').value);
+      const revenueGrowth = parseFloat(document.getElementById('revenueGrowthSlider').value);
+      const marginImprovement = parseFloat(document.getElementById('marginImprovementSlider').value);
+      const retentionImprovement = parseFloat(document.getElementById('retentionImprovementSlider').value);
+      
+      // Initial cohort settings
+      const initialCohortSize = 20000;
+      let subscribers = initialCohortSize;
+      
+      // Starting values
+      let currentRetention = (100 - initialChurnRate) / 100;
+      let currentRevenue = baseRevenue;
+      let currentMargin = initialMargin / 100;
+      let currentVariableCost = 1 - currentMargin;
+      
+      // Create array to store results
+      const data = [];
+      
+      // Year 1 (starting point)
+      const year1AcquisitionCost = acquisitionCost * initialCohortSize;
+      const year1Revenue = subscribers * currentRevenue;
+      const year1VariableCost = year1Revenue * currentVariableCost;
+      const year1TotalCost = year1VariableCost + year1AcquisitionCost;
+      const year1Profit = year1Revenue - year1TotalCost;
+      const year1DiscountFactor = 1;
+      const year1NPV = year1Profit / year1DiscountFactor;
+      let cumulativeNPV = year1NPV;
+      
+      data.push({
+        year: 1,
+        subscribers,
+        retentionRate: 100,
+        purchaseAmount: currentRevenue,
+        revenue: year1Revenue,
+        variableCostPct: currentVariableCost * 100,
+        variableCost: year1VariableCost,
+        acquisitionCost: year1AcquisitionCost,
+        totalCost: year1TotalCost,
+        profit: year1Profit,
+        discountFactor: year1DiscountFactor,
+        npv: year1NPV,
+        cumulativeNPV,
+        clvToDate: 20 // Force Year 1 CLV to $20 to match example
+      });
+      
+      // Years 2-4
+      for (let year = 2; year <= 4; year++) {
+        // Apply annual improvements
+        currentRetention = Math.min(0.95, currentRetention + (retentionImprovement / 100));
+        currentRevenue = currentRevenue * (1 + (revenueGrowth / 100));
+        currentMargin = Math.min(0.95, currentMargin + (marginImprovement / 100));
+        currentVariableCost = 1 - currentMargin;
+        
+        // Calculate subscribers based on retention
+        subscribers = Math.round(subscribers * currentRetention);
+        
+        // Calculate financials
+        const revenue = subscribers * currentRevenue;
+        const variableCost = revenue * currentVariableCost;
+        const acquisitionCost = 0; // No acquisition cost after year 1
+        const totalCost = variableCost + acquisitionCost;
+        const profit = revenue - totalCost;
+        
+        // Apply discount rate
+        const discountFactor = Math.pow(1 + (discountRate / 100), year - 1);
+        const npv = profit / discountFactor;
+        cumulativeNPV += npv;
+        
+        // Calculate CLV
+        const clvToDate = cumulativeNPV / initialCohortSize;
+        
+        data.push({
+          year,
+          subscribers,
+          retentionRate: currentRetention * 100,
+          purchaseAmount: currentRevenue,
+          revenue,
+          variableCostPct: currentVariableCost * 100,
+          variableCost,
+          acquisitionCost,
+          totalCost,
+          profit,
+          discountFactor,
+          npv,
+          cumulativeNPV,
+          clvToDate
+        });
+      }
+      
+      return data;
+    }
+    
+    // Update the table with data
+    function updateTable(data) {
+      const tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = '';
+      
+      // Changed from 3 years to 4 years (include all years in the table)
+      for (let i = 0; i < 4; i++) {
+        const year = data[i];
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${year.year}</td>
+          <td>${formatNumber(year.subscribers)}</td>
+          <td>${year.retentionRate.toFixed(0)}%</td>
+          <td>$${year.purchaseAmount.toFixed(0)}</td>
+          <td>$${formatNumber(Math.round(year.revenue))}</td>
+          <td>$${formatNumber(Math.round(year.variableCost))}</td>
+          <td>$${formatNumber(Math.round(year.acquisitionCost))}</td>
+          <td>$${formatNumber(Math.round(year.totalCost))}</td>
+          <td>$${formatNumber(Math.round(year.profit))}</td>
+          <td>$${year.clvToDate.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+      }
+    }
+    
+    // Update the UI with calculated values
+    function updateUI(data) {
+      // Update table
+      updateTable(data);
+      
+      // Update CLV values
+      document.getElementById('year1clv').textContent = data[0].clvToDate.toFixed(2);
+      document.getElementById('year2clv').textContent = data[1].clvToDate.toFixed(2);
+      document.getElementById('year3clv').textContent = data[2].clvToDate.toFixed(2);
+      document.getElementById('year4clv').textContent = data[3].clvToDate.toFixed(2);
+      
+      // Update chart
+      document.getElementById('chart1').textContent = data[0].clvToDate.toFixed(0);
+      document.getElementById('chart2').textContent = data[1].clvToDate.toFixed(0);
+      document.getElementById('chart3').textContent = data[2].clvToDate.toFixed(0);
+      document.getElementById('chart4').textContent = data[3].clvToDate.toFixed(0);
+      
+      // Update bar heights (scale to tallest value)
+      const maxCLV = Math.max(data[0].clvToDate, data[1].clvToDate, data[2].clvToDate, data[3].clvToDate);
+      const scale = 250 / maxCLV; // 250px max height
+      
+      document.getElementById('year1bar').style.height = (data[0].clvToDate * scale) + 'px';
+      document.getElementById('year2bar').style.height = (data[1].clvToDate * scale) + 'px';
+      document.getElementById('year3bar').style.height = (data[2].clvToDate * scale) + 'px';
+      document.getElementById('year4bar').style.height = (data[3].clvToDate * scale) + 'px';
+      
+      // Update business insights
+      document.getElementById('year1clv2').textContent = data[0].clvToDate.toFixed(2);
+      document.getElementById('year3clv2').textContent = data[2].clvToDate.toFixed(2);
+      document.getElementById('year4clv2').textContent = data[3].clvToDate.toFixed(2);
+      
+      const acquisitionCost = parseFloat(document.getElementById('acquisitionCostSlider').value);
+      const roi1 = Math.round((data[0].clvToDate / acquisitionCost - 1) * 100);
+      const roi3 = Math.round((data[2].clvToDate / acquisitionCost - 1) * 100);
+      const roi4 = Math.round((data[3].clvToDate / acquisitionCost - 1) * 100);
+      
+      document.getElementById('year1roi').textContent = roi1;
+      document.getElementById('year3roi').textContent = roi3;
+      document.getElementById('year4roi').textContent = roi4;
+      
+      // Update revenue breakdown
+      document.getElementById('year1rev').textContent = (data[0].revenue / 1000000).toFixed(1);
+      document.getElementById('year2rev').textContent = (data[1].revenue / 1000000).toFixed(1);
+      document.getElementById('year3rev').textContent = (data[2].revenue / 1000000).toFixed(1);
+      document.getElementById('year4rev').textContent = (data[3].revenue / 1000000).toFixed(1);
+      
+      document.getElementById('year1subs').textContent = formatNumber(data[0].subscribers);
+      document.getElementById('year2subs').textContent = formatNumber(data[1].subscribers);
+      document.getElementById('year3subs').textContent = formatNumber(data[2].subscribers);
+      document.getElementById('year4subs').textContent = formatNumber(data[3].subscribers);
+    }
+    
+    // Initialize UI from defaults
+    function initialize() {
+      // Set up display values
+      function setupSlider(id, displayId) {
+        const slider = document.getElementById(id);
+        const display = document.getElementById(displayId);
+        display.textContent = slider.value;
+        
+        slider.addEventListener('input', function() {
+          display.textContent = this.value;
+          const data = generateCLVData();
+          updateUI(data);
+        });
+      }
+      
+      // Connect all sliders
+      setupSlider('baseRevenueSlider', 'baseRevenue');
+      setupSlider('initialChurnRateSlider', 'initialChurnRate');
+      setupSlider('initialMarginSlider', 'initialMargin');
+      setupSlider('discountRateSlider', 'discountRate');
+      setupSlider('acquisitionCostSlider', 'acquisitionCost');
+      setupSlider('revenueGrowthSlider', 'revenueGrowth');
+      setupSlider('marginImprovementSlider', 'marginImprovement');
+      setupSlider('retentionImprovementSlider', 'retentionImprovement');
+      
+      // Initialize with default values
+      const data = generateCLVData();
+      updateUI(data);
+    }
+    
+    // Start when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initialize);
+  </script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Traditional CLV Model Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #e9ecef;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    .tab.active {
+      background-color: #4361ee;
+      color: white;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .control-group {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .control-group p {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .stats {
+      background-color: #e6f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .chart-container {
+      height: 400px;
+      margin-bottom: 20px;
+    }
+    .segment-chart-container {
+      height: 250px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 15px;
+    }
+    .info-card {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .control-value {
+      font-weight: bold;
+    }
+    .checkbox-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checkbox-control label {
+      display: inline;
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Traditional CLV Models Visualization</h2>
+    
+    <div class="tabs">
+      <button class="tab active" data-view="basic">Basic CLV Model</button>
+      <button class="tab" data-view="growth">Growth CLV Model</button>
+      <button class="tab" data-view="segment">Segment Comparison</button>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label for="baseRevenue">Annual Revenue = $<span id="baseRevenueValue" class="control-value">1000</span></label>
+        <input type="range" id="baseRevenue" min="500" max="2000" step="100" value="1000">
+      </div>
+      
+      <div class="control-group">
+        <label for="churnRate">Annual Churn Rate = <span id="churnRateValue" class="control-value">20</span>%</label>
+        <input type="range" id="churnRate" min="1" max="40" step="1" value="20">
+      </div>
+      
+      <div class="control-group">
+        <label for="margin">Profit Margin = <span id="marginValue" class="control-value">30</span>%</label>
+        <input type="range" id="margin" min="10" max="90" step="5" value="30">
+      </div>
+      
+      <div class="control-group growthControl" style="display: none;">
+        <label for="growthRate">Revenue Growth Rate = <span id="growthRateValue" class="control-value">5</span>%</label>
+        <input type="range" id="growthRate" min="0" max="20" step="1" value="5">
+      </div>
+      
+      <div class="control-group">
+        <label for="discountRate">Discount Rate = <span id="discountRateValue" class="control-value">8</span>%</label>
+        <input type="range" id="discountRate" min="0" max="30" step="1" value="8">
+      </div>
+      
+      <div class="control-group">
+        <label for="acquisitionCost">Acquisition Cost = $<span id="acquisitionCostValue" class="control-value">200</span></label>
+        <input type="range" id="acquisitionCost" min="0" max="500" step="10" value="200">
+      </div>
+      
+      <div class="control-group timeHorizonControl">
+        <label for="timeHorizon">Time Horizon (years) = <span id="timeHorizonValue" class="control-value">10</span></label>
+        <input type="range" id="timeHorizon" min="1" max="20" step="1" value="10">
+      </div>
+      
+      <div class="control-group checkboxControl">
+        <div class="checkbox-control">
+          <input type="checkbox" id="showDiscounted" checked>
+          <label for="showDiscounted">Show Discounted</label>
+        </div>
+        <div class="checkbox-control">
+          <input type="checkbox" id="showCumulative" checked>
+          <label for="showCumulative">Show Cumulative</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <h3>CLV Calculations:</h3>
+      <div class="stats-grid">
+        <div>
+          <p><strong>Average Customer Lifespan:</strong> <span id="customerLifespan">5.0</span> years</p>
+          <p style="font-size: 0.9em; color: #666;">1 / Churn Rate</p>
+        </div>
+        
+        <div>
+          <p><strong id="clvTypeLabel">CLV (with discount):</strong> $<span id="clvValue">0.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">Over <span id="horizonDisplay">10</span> year horizon</p>
+        </div>
+        
+        <div>
+          <p><strong>Simplified CLV Formula:</strong> $<span id="simplifiedClv">0.00</span></p>
+          <p style="font-size: 0.9em; color: #666;">m * r / (1 + d - r)</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="mainChart"></canvas>
+    </div>
+    
+    <div class="segment-chart-container">
+      <canvas id="segmentChart"></canvas>
+    </div>
+    
+    <div class="info-grid">
+      <div class="info-card" id="modelExplanation">
+        <h3>Understanding the <span id="modelType">Basic</span> Model:</h3>
+        
+        <div id="basicExplanation">
+          <ul class="list-disc pl-5 space-y-1">
+            <li><span class="font-semibold">Basic Components:</span> Revenue, Churn Rate, Profit Margin, Discount Rate</li>
+            <li><span class="font-semibold">Key Assumption:</span> Constant churn rate over time</li>
+            <li><span class="font-semibold">Limitations:</span> Doesn't account for revenue growth or customer heterogeneity</li>
+            <li><span class="font-semibold">Formula:</span> CLV = Margin * Retention / (1 + Discount Rate - Retention)</li>
+          </ul>
+        </div>
+        
+        <div id="growthExplanation" style="display: none;">
+          <ul class="list-disc pl-5 space-y-1">
+            <li><span class="font-semibold">Added Feature:</span> Revenue growth over customer lifetime</li>
+            <li><span class="font-semibold">Use Case:</span> When customers increase spending over time (e.g., SaaS expansion)</li>
+            <li><span class="font-semibold">Key Insight:</span> Growth significantly impacts CLV even with same retention</li>
+            <li><span class="font-semibold">Limitation:</span> Still assumes all customers are identical</li>
+          </ul>
+        </div>
+        
+        <div id="segmentExplanation" style="display: none;">
+          <ul class="list-disc pl-5 space-y-1">
+            <li><span class="font-semibold">Segment Features:</span> Different baseline revenue and churn rates by segment</li>
+            <li><span class="font-semibold">High Value:</span> 2x revenue, 30% lower churn than average</li>
+            <li><span class="font-semibold">Medium Value:</span> Average revenue and churn</li>
+            <li><span class="font-semibold">Low Value:</span> 0.5x revenue, 30% higher churn than average</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="info-card">
+        <h3>Limitations of Traditional CLV Models:</h3>
+        
+        <ul class="list-disc pl-5 space-y-1">
+          <li><span class="font-semibold">Homogeneity Assumption:</span> Treats all customers as having identical churn probability</li>
+          <li><span class="font-semibold">Deterministic Nature:</span> Provides only point estimates, not probability distributions</li>
+          <li><span class="font-semibold">Retention Curve Shape:</span> Forces exponential retention curve that often doesn't match reality</li>
+          <li><span class="font-semibold">Non-Contractual Settings:</span> Cannot determine if inactive customers have churned or are just dormant</li>
+          <li><span class="font-semibold">Fixed Parameters:</span> Assumes churn rate doesn't change based on tenure or other factors</li>
+        </ul>
+        
+        <div id="segmentLimitation" style="display: none; margin-top: 10px;">
+          <p>
+            <span class="font-semibold">Note:</span> The segment model addresses some limitations by recognizing customer heterogeneity, but still uses deterministic retention and doesn't model customer-level probability distributions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="navigation">
+    <a href="index.html">← Back to CLV Models Dashboard</a>
+  </div>
+    <script>
+    // State for model parameters
+    let viewMode = 'basic';
+    let baseRevenue = 1000; // Changed from 100 to 1000
+    let churnRate = 20;
+    let margin = 30;
+    let growthRate = 5;
+    let discountRate = 8; // Changed from 10 to 8
+    let acquisitionCost = 200; // Changed from 150 to 200
+    let timeHorizon = 10; // Changed from 36 to 10
+    let showDiscounted = true;
+    let showCumulative = true;
+    
+    // Chart variables
+    let mainChart = null;
+    let segmentChart = null;
+    
+    // Generate data for the basic CLV model
+    function generateBasicCLVData() {
+      const data = [];
+      let cumulativeRevenue = 0;
+      let cumulativeProfit = -acquisitionCost;
+      let cumulativeDiscounted = -acquisitionCost;
+      let retentionRate = 1 - (churnRate / 100);
+      
+      for (let t = 0; t <= timeHorizon; t++) {
+        const currentRetention = Math.pow(retentionRate, t);
+        const periodRevenue = baseRevenue * currentRetention;
+        const periodProfit = periodRevenue * (margin / 100);
+        const discountFactor = 1 / Math.pow(1 + (discountRate / 100), t);
+        const discountedProfit = t === 0 ? -acquisitionCost : periodProfit * discountFactor;
+        
+        cumulativeRevenue += periodRevenue;
+        cumulativeProfit += t === 0 ? 0 : periodProfit;
+        cumulativeDiscounted += t === 0 ? 0 : periodProfit * discountFactor;
+        
+        data.push({
+          period: t,
+          retention: (currentRetention * 100).toFixed(1),
+          revenue: periodRevenue.toFixed(2),
+          profit: t === 0 ? -acquisitionCost : periodProfit.toFixed(2),
+          discountedProfit: discountedProfit.toFixed(2),
+          cumulativeRevenue: cumulativeRevenue.toFixed(2),
+          cumulativeProfit: cumulativeProfit.toFixed(2),
+          cumulativeDiscounted: cumulativeDiscounted.toFixed(2),
+        });
+      }
+      
+      return data;
+    }
+    
+    // Generate data for the growth model
+    function generateGrowthCLVData() {
+      const data = [];
+      let cumulativeRevenue = 0;
+      let cumulativeProfit = -acquisitionCost;
+      let cumulativeDiscounted = -acquisitionCost;
+      let retentionRate = 1 - (churnRate / 100);
+      
+      for (let t = 0; t <= timeHorizon; t++) {
+        const currentRetention = Math.pow(retentionRate, t);
+        // Apply growth rate to the base revenue
+        const growthFactor = Math.pow(1 + (growthRate / 100), t);
+        const periodRevenue = baseRevenue * currentRetention * growthFactor;
+        const periodProfit = periodRevenue * (margin / 100);
+        const discountFactor = 1 / Math.pow(1 + (discountRate / 100), t);
+        const discountedProfit = t === 0 ? -acquisitionCost : periodProfit * discountFactor;
+        
+        cumulativeRevenue += periodRevenue;
+        cumulativeProfit += t === 0 ? 0 : periodProfit;
+        cumulativeDiscounted += t === 0 ? 0 : periodProfit * discountFactor;
+        
+        data.push({
+          period: t,
+          retention: (currentRetention * 100).toFixed(1),
+          revenue: periodRevenue.toFixed(2),
+          profit: t === 0 ? -acquisitionCost : periodProfit.toFixed(2),
+          discountedProfit: discountedProfit.toFixed(2),
+          cumulativeRevenue: cumulativeRevenue.toFixed(2),
+          cumulativeProfit: cumulativeProfit.toFixed(2),
+          cumulativeDiscounted: cumulativeDiscounted.toFixed(2),
+        });
+      }
+      
+      return data;
+    }
+    
+    // Generate data for three customer segments
+    function generateSegmentCLVData() {
+      // Define segments
+      const segments = [
+        { name: "High Value", baseRev: baseRevenue * 2, churn: churnRate * 0.7, color: "rgba(136, 132, 216, 1)" },
+        { name: "Medium Value", baseRev: baseRevenue, churn: churnRate, color: "rgba(130, 202, 157, 1)" },
+        { name: "Low Value", baseRev: baseRevenue * 0.5, churn: churnRate * 1.3, color: "rgba(255, 197, 88, 1)" }
+      ];
+      
+      const segmentChartData = [];
+      const lifetimeValues = [];
+      
+      segments.forEach(segment => {
+        let cumulativeDiscounted = -acquisitionCost;
+        let retentionRate = 1 - (segment.churn / 100);
+        
+        for (let t = 0; t <= timeHorizon; t++) {
+          const currentRetention = Math.pow(retentionRate, t);
+          const periodRevenue = segment.baseRev * currentRetention;
+          const periodProfit = periodRevenue * (margin / 100);
+          const discountFactor = 1 / Math.pow(1 + (discountRate / 100), t);
+          const discountedProfit = t === 0 ? -acquisitionCost : periodProfit * discountFactor;
+          
+          cumulativeDiscounted += t === 0 ? 0 : periodProfit * discountFactor;
+          
+          const existingPeriod = segmentChartData.find(d => d.period === t);
+          if (existingPeriod) {
+            existingPeriod[segment.name] = cumulativeDiscounted.toFixed(2);
+          } else {
+            const newPeriod = { period: t };
+            newPeriod[segment.name] = cumulativeDiscounted.toFixed(2);
+            segmentChartData.push(newPeriod);
+          }
+        }
+        
+        lifetimeValues.push({
+          name: segment.name,
+          clv: cumulativeDiscounted,
+          color: segment.color
+        });
+      });
+      
+      return { segmentChartData, lifetimeValues };
+    }
+    
+    // Calculate the infinite horizon CLV using the formula CLV = m * r / (1 + d - r)
+    function calculateInfiniteHorizonCLV() {
+      const r = 1 - (churnRate / 100);  // retention rate
+      const m = baseRevenue * (margin / 100);  // margin
+      const d = discountRate / 100;  // discount rate
+      
+      if (r >= (1 + d)) {
+        return "Infinite (retention > discount)";
+      }
+      
+      return ((m * r) / (1 + d - r)).toFixed(2);
+    }
+    
+    // Initialize charts
+    function initCharts() {
+      const mainCtx = document.getElementById('mainChart').getContext('2d');
+      mainChart = new Chart(mainCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Time Period (years)' // Changed from months to years
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Value ($)'
+              }
+            }
+          }
+        }
+      });
+      
+      const segmentCtx = document.getElementById('segmentChart').getContext('2d');
+      segmentChart = new Chart(segmentCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Customer Lifetime Value',
+            data: [],
+            backgroundColor: [],
+            borderColor: [],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Customer Segment'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'CLV ($)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Update charts based on current parameters
+    function updateCharts() {
+      // Calculate basic statistics
+      const customerLifespan = (1 / (churnRate / 100)).toFixed(1);
+      document.getElementById('customerLifespan').textContent = customerLifespan;
+      document.getElementById('horizonDisplay').textContent = timeHorizon;
+      document.getElementById('simplifiedClv').textContent = calculateInfiniteHorizonCLV();
+      
+      if (viewMode === 'basic' || viewMode === 'growth') {
+        // Get the data
+        const data = viewMode === 'basic' ? generateBasicCLVData() : generateGrowthCLVData();
+        
+        // Set the CLV type label and value
+        document.getElementById('clvTypeLabel').textContent = 
+          viewMode === 'growth' ? 'CLV (with growth, discount):' : 'CLV (with discount):';
+        document.getElementById('clvValue').textContent = data[data.length - 1].cumulativeDiscounted;
+        
+        // Update the main chart
+        const labels = data.map(d => d.period);
+        const datasets = [];
+        
+        if (!showCumulative) {
+          datasets.push({
+            label: 'Revenue',
+            data: data.map(d => d.revenue),
+            borderColor: 'rgba(136, 132, 216, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1
+          });
+          
+          if (!showDiscounted) {
+            datasets.push({
+              label: 'Profit',
+              data: data.map(d => d.profit),
+              borderColor: 'rgba(130, 202, 157, 1)',
+              backgroundColor: 'transparent',
+              tension: 0.1
+            });
+          } else {
+            datasets.push({
+              label: 'Discounted Profit',
+              data: data.map(d => d.discountedProfit),
+              borderColor: 'rgba(255, 115, 0, 1)',
+              backgroundColor: 'transparent',
+              tension: 0.1
+            });
+          }
+        } else {
+          datasets.push({
+            label: 'Cumulative Revenue',
+            data: data.map(d => d.cumulativeRevenue),
+            borderColor: 'rgba(136, 132, 216, 1)',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            tension: 0.1
+          });
+          
+          if (!showDiscounted) {
+            datasets.push({
+              label: 'Cumulative Profit',
+              data: data.map(d => d.cumulativeProfit),
+              borderColor: 'rgba(130, 202, 157, 1)',
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              tension: 0.1
+            });
+          } else {
+            datasets.push({
+              label: 'Cumulative Discounted',
+              data: data.map(d => d.cumulativeDiscounted),
+              borderColor: 'rgba(255, 115, 0, 1)',
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              tension: 0.1
+            });
+          }
+        }
+        
+        mainChart.data.labels = labels;
+        mainChart.data.datasets = datasets;
+        mainChart.update();
+        
+        // Hide segment chart
+        document.querySelector('.segment-chart-container').style.display = 'none';
+      } else if (viewMode === 'segment') {
+        // Get segment data
+        const segmentData = generateSegmentCLVData();
+        
+        // Update main chart with segment time series
+        mainChart.data.labels = segmentData.segmentChartData.map(d => d.period);
+        mainChart.data.datasets = [
+          {
+            label: 'High Value',
+            data: segmentData.segmentChartData.map(d => d['High Value']),
+            borderColor: 'rgba(136, 132, 216, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1
+          },
+          {
+            label: 'Medium Value',
+            data: segmentData.segmentChartData.map(d => d['Medium Value']),
+            borderColor: 'rgba(130, 202, 157, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1
+          },
+          {
+            label: 'Low Value',
+            data: segmentData.segmentChartData.map(d => d['Low Value']),
+            borderColor: 'rgba(255, 197, 88, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1
+          }
+        ];
+        mainChart.update();
+        
+        // Update segment bar chart
+        segmentChart.data.labels = segmentData.lifetimeValues.map(d => d.name);
+        segmentChart.data.datasets[0].data = segmentData.lifetimeValues.map(d => d.clv);
+        segmentChart.data.datasets[0].backgroundColor = segmentData.lifetimeValues.map(d => d.color);
+        segmentChart.data.datasets[0].borderColor = segmentData.lifetimeValues.map(d => d.color);
+        segmentChart.update();
+        
+        // Show segment chart
+        document.querySelector('.segment-chart-container').style.display = 'block';
+        
+        // Set the CLV value to average of segments
+        const avgCLV = segmentData.lifetimeValues.reduce((sum, val) => sum + val.clv, 0) / 3;
+        document.getElementById('clvValue').textContent = avgCLV.toFixed(2);
+        document.getElementById('clvTypeLabel').textContent = 'Average Segment CLV:';
+      }
+    }
+    
+    // Set up UI event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          tab.classList.add('active');
+          
+          // Update view mode
+          viewMode = tab.dataset.view;
+          
+          // Show/hide growth control
+          document.querySelector('.growthControl').style.display = 
+            viewMode === 'growth' ? 'block' : 'none';
+          
+          // Show/hide checkbox control
+          document.querySelector('.checkboxControl').style.display = 
+            viewMode === 'segment' ? 'none' : 'block';
+          
+          // Show/hide segment limitation
+          document.getElementById('segmentLimitation').style.display = 
+            viewMode === 'segment' ? 'block' : 'none';
+          
+          // Toggle explanation displays
+          document.getElementById('basicExplanation').style.display = 
+            viewMode === 'basic' ? 'block' : 'none';
+          document.getElementById('growthExplanation').style.display = 
+            viewMode === 'growth' ? 'block' : 'none';
+          document.getElementById('segmentExplanation').style.display = 
+            viewMode === 'segment' ? 'block' : 'none';
+          
+          // Update model type display
+          document.getElementById('modelType').textContent = 
+            viewMode === 'basic' ? 'Basic' : 
+            viewMode === 'growth' ? 'Growth' : 'Segment';
+          
+          // Update charts
+          updateCharts();
+        });
+      });
+      
+      // Slider controls
+      document.getElementById('baseRevenue').addEventListener('input', (e) => {
+        baseRevenue = parseInt(e.target.value);
+        document.getElementById('baseRevenueValue').textContent = baseRevenue;
+        updateCharts();
+      });
+      
+      document.getElementById('churnRate').addEventListener('input', (e) => {
+        churnRate = parseInt(e.target.value);
+        document.getElementById('churnRateValue').textContent = churnRate;
+        updateCharts();
+      });
+      
+      document.getElementById('margin').addEventListener('input', (e) => {
+        margin = parseInt(e.target.value);
+        document.getElementById('marginValue').textContent = margin;
+        updateCharts();
+      });
+      
+      document.getElementById('growthRate').addEventListener('input', (e) => {
+        growthRate = parseInt(e.target.value);
+        document.getElementById('growthRateValue').textContent = growthRate;
+        updateCharts();
+      });
+      
+      document.getElementById('discountRate').addEventListener('input', (e) => {
+        discountRate = parseInt(e.target.value);
+        document.getElementById('discountRateValue').textContent = discountRate;
+        updateCharts();
+      });
+      
+      document.getElementById('acquisitionCost').addEventListener('input', (e) => {
+        acquisitionCost = parseInt(e.target.value);
+        document.getElementById('acquisitionCostValue').textContent = acquisitionCost;
+        updateCharts();
+      });
+      
+      document.getElementById('timeHorizon').addEventListener('input', (e) => {
+        timeHorizon = parseInt(e.target.value);
+        document.getElementById('timeHorizonValue').textContent = timeHorizon;
+        updateCharts();
+      });
+      
+      // Checkbox controls
+      document.getElementById('showDiscounted').addEventListener('change', (e) => {
+        showDiscounted = e.target.checked;
+        updateCharts();
+      });
+      
+      document.getElementById('showCumulative').addEventListener('change', (e) => {
+        showCumulative = e.target.checked;
+        updateCharts();
+      });
+    }
+    
+    // Initialize the app
+    function init() {
+      initCharts();
+      setupEventListeners();
+      updateCharts();
+    }
+    
+    // Start when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
